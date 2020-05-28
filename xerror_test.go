@@ -25,6 +25,7 @@ func init22(a ...interface{}) (err error) {
 func init21(a ...interface{}) (err error) {
 	//defer xerror.RespErr(&err)
 	defer xerror.Resp(func(_err xerror.XErr) {
+		_ = _err.Error()
 		//fmt.Println(_err.Error(), _err.Code())
 	})
 
@@ -42,8 +43,21 @@ func TestName(t *testing.T) {
 	//Exit(init21(1, 2, 3))
 }
 
-func BenchmarkName(b *testing.B) {
+func BenchmarkPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		init21(1, 2, 3)
+	}
+}
+
+func BenchmarkNoPanic(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		func() {
+			defer xerror.Resp(func(_err xerror.XErr) {
+				//fmt.Println(_err.Error(), _err.Code())
+				_err.Error()
+			})
+
+			xerror.PanicF(nil, "hello")
+		}()
 	}
 }

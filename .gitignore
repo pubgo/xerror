@@ -25,3 +25,5 @@ kdata
 *.log
 migrations/m_*.go
 node_modules
+*.out
+*.test
