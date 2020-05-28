@@ -1,2 +1,4 @@
 # xerror
-https://github.com/pubgo/g/tree/master/xerror
+
+go error 简单实现
+
