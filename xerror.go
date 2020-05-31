@@ -10,11 +10,13 @@ import (
 
 type XErr interface {
 	error
+	P()
 	As(err interface{}) bool
 	Is(err error) bool
 	Unwrap() error
 	Wrap(err error) error
 	Code() int
+	Reset()
 }
 
 func New(code int, Msg string) interface {
@@ -22,6 +24,18 @@ func New(code int, Msg string) interface {
 	Code() int
 } {
 	return &xerror{code: code, Msg: Msg}
+}
+
+func Try(fn func() error) (err error) {
+	defer Resp(func(_err XErr) {
+		err = handle(_err, "")
+		err.(*xerror).Caller = callerWithFunc(reflect.ValueOf(fn))
+	})
+	err = fn()
+	if isErrNil(err) {
+		return
+	}
+	panic(handle(err, ""))
 }
 
 func RespErr(err *error) {
@@ -34,7 +48,6 @@ func Resp(f func(err XErr)) {
 	handleErr(&err, recover())
 	if err != nil {
 		f(err.(XErr))
-		err.(*xerror).Reset()
 	}
 }
 

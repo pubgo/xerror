@@ -43,6 +43,15 @@ func TestName(t *testing.T) {
 	//Exit(init21(1, 2, 3))
 }
 
+func TestTry(t *testing.T) {
+	xerror.Debug = true
+	fmt.Println(xerror.Try(func() error {
+		//panic("hello")
+		xerror.Panic(fmt.Errorf("ss"))
+		return fmt.Errorf("ss")
+	}))
+}
+
 func BenchmarkPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		init21(1, 2, 3)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -18,9 +19,13 @@ func handleErr(err *error, _err interface{}) {
 	case *xerror:
 		*err = _err.(*xerror)
 	case error:
-		*err = _err.(error)
+		err1 := getXerror()
+		err1.xrr = _err.(error)
+		*err = err1
 	case string:
-		*err = errors.New(_err.(string))
+		err1 := getXerror()
+		err1.xrr = errors.New(_err.(string))
+		*err = err1
 	default:
 		logger.Fatalf("unknown type, %#v", _err)
 	}
@@ -52,9 +57,14 @@ type Frame uintptr
 
 func (f Frame) pc() uintptr { return uintptr(f) - 1 }
 
-func callerWithDepth() string {
+func callerWithDepth(callDepths ...int) string {
+	var cd = callDepth
+	if len(callDepths) > 0 {
+		cd = callDepths[0]
+	}
+
 	var pcs = make([]uintptr, 1)
-	if runtime.Callers(callDepth, pcs[:]) == 0 {
+	if runtime.Callers(cd, pcs[:]) == 0 {
 		return ""
 	}
 
@@ -63,7 +73,17 @@ func callerWithDepth() string {
 	if fn == nil {
 		return "unknown func"
 	}
+
 	file, line := fn.FileLine(f.pc())
+	return file + ":" + strconv.Itoa(line)
+}
+
+func callerWithFunc(fn reflect.Value) string {
+	if !fn.IsValid() || fn.IsNil() || fn.Kind() != reflect.Func {
+		logger.Fatal("func error")
+	}
+	var _fn = fn.Pointer()
+	var file, line = runtime.FuncForPC(_fn).FileLine(_fn)
 	return file + ":" + strconv.Itoa(line)
 }
 

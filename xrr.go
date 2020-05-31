@@ -35,6 +35,11 @@ func (t *xerror) Unwrap() error {
 	return t.xrr
 }
 
+func (t *xerror) P() {
+	Debug = true
+	fmt.Println(t.Error())
+}
+
 func (t *xerror) Wrap(err error) error {
 	if isErrNil(err) {
 		return nil
