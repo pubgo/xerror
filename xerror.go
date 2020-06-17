@@ -66,6 +66,20 @@ func Resp(f func(err XRErr)) {
 	}
 }
 
+func RespExit() {
+	var err error
+	handleErr(&err, recover())
+	if isErrNil(err) {
+		return
+	}
+
+	fmt.Printf("%v\n", err)
+	if Debug {
+		debug.PrintStack()
+	}
+	os.Exit(1)
+}
+
 func Panic(err error) {
 	if isErrNil(err) {
 		return
@@ -145,7 +159,7 @@ func ExitErr(_ interface{}, err error) {
 		return
 	}
 
-	logger.Println(handle(err, "").Error())
+	fmt.Printf("%v\n", handle(err, ""))
 	if Debug {
 		debug.PrintStack()
 	}
@@ -158,7 +172,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 		return
 	}
 
-	logger.Println(handle(err, msg, args...).Error())
+	fmt.Printf("%v\n", handle(err, msg, args...))
 	if Debug {
 		debug.PrintStack()
 	}
@@ -170,7 +184,7 @@ func Exit(err error) {
 		return
 	}
 
-	logger.Println(handle(err, "").Error())
+	fmt.Printf("%v\n", handle(err, ""))
 	if Debug {
 		debug.PrintStack()
 	}
