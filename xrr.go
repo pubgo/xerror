@@ -2,6 +2,7 @@ package xerror
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -17,8 +18,21 @@ type xerror struct {
 	Sub    *xerror `json:"sub,omitempty"`
 }
 
-func (t *xerror) New(code, msg string) XErr {
-	return &xerror{Code1: t.Code1 + ": " + code, Msg: msg}
+func (t *xerror) New(ms ...string) XErr {
+	if len(ms) == 0 {
+		logger.Fatalln("the parameter cannot be empty")
+	}
+
+	var msg, code string
+	switch len(ms) {
+	case 1:
+		code = ms[0]
+	case 2:
+		code, msg = ms[0], ms[1]
+	}
+
+	code = t.Code1 + ": " + code
+	return &xerror{Code1: code, Msg: msg, xrr: errors.New(code)}
 }
 
 func (t *xerror) Code() string {
@@ -45,13 +59,13 @@ func (t *xerror) Unwrap() error {
 func (t *xerror) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		io.WriteString(s, t.Detail())
+		_, _ = io.WriteString(s, t.Detail())
 	case 's':
 		if t.xrr != nil {
-			io.WriteString(s, t.Error())
+			_, _ = io.WriteString(s, t.Error())
 		}
 	case 'q':
-		fmt.Fprintf(s, "%q", t.Error())
+		_, _ = fmt.Fprintf(s, "%q", t.Error())
 	}
 }
 

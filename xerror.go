@@ -10,7 +10,7 @@ import (
 )
 
 type XErr interface {
-	New(code, msg string) XErr
+	New(ms ...string) XErr
 	XRErr
 }
 
@@ -25,8 +25,20 @@ type XRErr interface {
 	Reset()
 }
 
-func New(code, msg string) XErr {
-	return &xerror{Code1: code, Msg: msg}
+func New(ms ...string) XErr {
+	if len(ms) == 0 {
+		logger.Fatalln("the parameter cannot be empty")
+	}
+
+	var msg, code string
+	switch len(ms) {
+	case 1:
+		code = ms[0]
+	case 2:
+		code, msg = ms[0], ms[1]
+	}
+
+	return &xerror{Code1: code, Msg: msg, xrr: errors.New(code)}
 }
 
 func Try(fn func() error) (err error) {
