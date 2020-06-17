@@ -42,10 +42,10 @@ func handle(err error, msg string, args ...interface{}) error {
 	if err1, ok := err.(*xerror); ok {
 		err2.Sub = err1
 		err2.xrr = err1.xrr
-		err1.xrr = nil
+		err2.Code1 = err1.Code1
 
-		err2.code = err1.code
-		err1.code = 0
+		err1.xrr = nil
+		err1.Code1 = ""
 	} else {
 		err2.xrr = err
 	}

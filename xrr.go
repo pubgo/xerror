@@ -3,20 +3,35 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"strings"
 )
 
 type xerror struct {
 	error
 	xrr    error
-	code   int
-	Err    string  `json:"err,omitempty"`
-	Msg    string  `json:"msg,omitempty"`
-	Caller string  `json:"caller,omitempty"`
-	Sub    *xerror `json:"sub,omitempty"`
+	Code1  string                 `json:"code,omitempty"`
+	Err    string                 `json:"err,omitempty"`
+	Msg    string                 `json:"msg,omitempty"`
+	Caller string                 `json:"caller,omitempty"`
+	Attach map[string]interface{} `json:"attached,omitempty"`
+	Sub    *xerror                `json:"sub,omitempty"`
 }
 
-func (t *xerror) Code() int {
-	return t.code
+func (t *xerror) Attached(k string, v interface{}) {
+	if t.Attach == nil {
+		t.Attach = map[string]interface{}{k: v}
+		return
+	}
+	t.Attach[k] = v
+}
+
+func (t *xerror) New(code, msg string) XErr {
+	return &xerror{Code1: t.Code1 + ": " + code, Msg: msg}
+}
+
+func (t *xerror) Code() string {
+	return t.Code1
 }
 
 func (t *xerror) next(e *xerror) {
@@ -35,27 +50,33 @@ func (t *xerror) Unwrap() error {
 	return t.xrr
 }
 
-func (t *xerror) P() {
-	Debug = true
-	fmt.Println(t.Error())
-}
-
-func (t *xerror) Wrap(err error) error {
-	if isErrNil(err) {
-		return nil
+// Format...
+func (t *xerror) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		io.WriteString(s, t.Detail())
+	case 's':
+		if t.xrr != nil {
+			io.WriteString(s, t.Error())
+		}
+	case 'q':
+		fmt.Fprintf(s, "%q", t.Error())
 	}
-
-	t.xrr = err
-	t.Caller = callerWithDepth()
-	return t
 }
 
 func (t *xerror) Is(err error) bool {
-	if t == nil {
+	if t == nil || t.xrr == nil || err == nil {
 		return false
 	}
 
-	return t.xrr == err
+	switch err := err.(type) {
+	case *xerror:
+		return err == t || err.xrr == t.xrr || err.Code1 == t.Code1
+	case error:
+		return t.xrr == err
+	default:
+		return false
+	}
 }
 
 func (t *xerror) As(err interface{}) bool {
@@ -65,19 +86,17 @@ func (t *xerror) As(err interface{}) bool {
 
 	switch e := err.(type) {
 	case *xerror:
-		fmt.Println(e.code)
-		return t.code == e.code
-	case int:
-		return t.code == e
+		return strings.HasPrefix(t.Code1, e.Code1)
+	case error:
+		return strings.HasPrefix(t.Code1, e.Error())
 	case string:
-		return t.Msg == e
+		return strings.HasPrefix(t.Code1, e)
 	default:
 		return false
 	}
 }
 
-// Error
-func (t *xerror) Error() string {
+func (t *xerror) Detail() string {
 	if t == nil || t.xrr == nil || t.xrr == ErrDone {
 		return ""
 	}
@@ -93,9 +112,18 @@ func (t *xerror) Error() string {
 	return string(dt)
 }
 
+// Error
+func (t *xerror) Error() string {
+	if t == nil || t.xrr == nil || t.xrr == ErrDone {
+		return ""
+	}
+
+	return t.xrr.Error()
+}
+
 func (t *xerror) Reset() {
 	t.xrr = nil
-	t.code = 0
+	t.Code1 = ""
 	t.Err = ""
 	t.Msg = ""
 	t.Caller = ""

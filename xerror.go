@@ -2,6 +2,7 @@ package xerror
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"reflect"
@@ -10,20 +11,19 @@ import (
 
 type XErr interface {
 	error
-	P()
+	fmt.Formatter
 	As(err interface{}) bool
 	Is(err error) bool
 	Unwrap() error
-	Wrap(err error) error
-	Code() int
+	New(code, msg string) XErr
+	Attached(k string, v interface{})
+	Code() string
+	Detail() string
 	Reset()
 }
 
-func New(code int, Msg string) interface {
-	Wrap(error) error
-	Code() int
-} {
-	return &xerror{code: code, Msg: Msg}
+func New(code, msg string) XErr {
+	return &xerror{Code1: code, Msg: msg}
 }
 
 func Try(fn func() error) (err error) {
