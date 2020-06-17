@@ -10,20 +10,11 @@ import (
 type xerror struct {
 	error
 	xrr    error
-	Code1  string                 `json:"code,omitempty"`
-	Err    string                 `json:"err,omitempty"`
-	Msg    string                 `json:"msg,omitempty"`
-	Caller string                 `json:"caller,omitempty"`
-	Attach map[string]interface{} `json:"attached,omitempty"`
-	Sub    *xerror                `json:"sub,omitempty"`
-}
-
-func (t *xerror) Attached(k string, v interface{}) {
-	if t.Attach == nil {
-		t.Attach = map[string]interface{}{k: v}
-		return
-	}
-	t.Attach[k] = v
+	Code1  string  `json:"code,omitempty"`
+	Err    string  `json:"err,omitempty"`
+	Msg    string  `json:"msg,omitempty"`
+	Caller string  `json:"caller,omitempty"`
+	Sub    *xerror `json:"sub,omitempty"`
 }
 
 func (t *xerror) New(code, msg string) XErr {

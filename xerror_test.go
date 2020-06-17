@@ -17,14 +17,14 @@ func init22(a ...interface{}) (err error) {
 	//_ = "ss" + "sss"
 	//xrr.Panic(nil)
 	//xerror.PanicF(nil, "sssss %#v", a)
-	xerror.Panic(xerror.ErrBadRequest.Wrap(fmt.Errorf("ssssss wrap")))
+	xerror.PanicF(xerror.ErrBadRequest, "ssssss wrap")
 	//xerror.PanicF(fmt.Errorf("ss"), "sssss %#v", a)
 	return
 }
 
 func init21(a ...interface{}) (err error) {
 	//defer xerror.RespErr(&err)
-	defer xerror.Resp(func(_err xerror.XErr) {
+	defer xerror.Resp(func(_err xerror.XRErr) {
 		_ = _err.Error()
 		//fmt.Println(_err.Error(), _err.Code())
 	})
@@ -61,7 +61,7 @@ func BenchmarkPanic(b *testing.B) {
 func BenchmarkNoPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		func() {
-			defer xerror.Resp(func(_err xerror.XErr) {
+			defer xerror.Resp(func(_err xerror.XRErr) {
 				//fmt.Println(_err.Error(), _err.Code())
 				_err.Error()
 			})

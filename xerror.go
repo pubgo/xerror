@@ -10,13 +10,16 @@ import (
 )
 
 type XErr interface {
+	New(code, msg string) XErr
+	XRErr
+}
+
+type XRErr interface {
 	error
 	fmt.Formatter
 	As(err interface{}) bool
 	Is(err error) bool
 	Unwrap() error
-	New(code, msg string) XErr
-	Attached(k string, v interface{})
 	Code() string
 	Detail() string
 	Reset()
@@ -27,7 +30,7 @@ func New(code, msg string) XErr {
 }
 
 func Try(fn func() error) (err error) {
-	defer Resp(func(_err XErr) {
+	defer Resp(func(_err XRErr) {
 		err = handle(_err, "")
 		err.(*xerror).Caller = callerWithFunc(reflect.ValueOf(fn))
 	})
@@ -43,7 +46,7 @@ func RespErr(err *error) {
 }
 
 // Resp
-func Resp(f func(err XErr)) {
+func Resp(f func(err XRErr)) {
 	var err error
 	handleErr(&err, recover())
 	if err != nil {
