@@ -17,17 +17,10 @@ type xerror struct {
 	Sub    *xerror `json:"sub,omitempty"`
 }
 
-func (t *xerror) New(ms ...string) XErr {
-	if len(ms) == 0 {
-		logger.Fatalln("the parameter cannot be empty")
-	}
-
-	var msg, code string
-	switch len(ms) {
-	case 1:
-		code = ms[0]
-	case 2:
-		code, msg = ms[0], ms[1]
+func (t *xerror) New(code string, ms ...string) XErr {
+	var msg string
+	if len(ms) == 1 {
+		msg = ms[1]
 	}
 
 	code = t.Code1 + ": " + code

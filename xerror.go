@@ -10,7 +10,7 @@ import (
 )
 
 type XErr interface {
-	New(ms ...string) XErr
+	New(code string, ms ...string) XErr
 	XRErr
 }
 
@@ -28,17 +28,11 @@ type xerrorWrap struct {
 	*xerror
 }
 
-func New(ms ...string) XErr {
-	if len(ms) == 0 {
-		logger.Fatalln("the parameter cannot be empty")
-	}
+func New(code string, ms ...string) XErr {
 
-	var msg, code string
-	switch len(ms) {
-	case 1:
-		code = ms[0]
-	case 2:
-		code, msg = ms[0], ms[1]
+	var msg string
+	if len(ms) == 1 {
+		msg = ms[1]
 	}
 
 	xw := &xerrorWrap{xerror: new(xerror)}
