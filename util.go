@@ -16,6 +16,8 @@ func handleErr(err *error, _err interface{}) {
 	switch _err := _err.(type) {
 	case *xerror:
 		*err = _err
+	case *xerrorBase:
+		*err = _err.xerror
 	case error:
 		err1 := getXerror()
 		err1.xrr = _err
