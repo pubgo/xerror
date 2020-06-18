@@ -68,6 +68,7 @@ func (t *xerror) p() string {
 	var buf = &strings.Builder{}
 	defer buf.Reset()
 
+	buf.WriteString("\n")
 	xrr := t
 	for xrr != nil {
 		buf.WriteString("========================================================================================================================\n")
