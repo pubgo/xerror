@@ -4,6 +4,7 @@ github.com/google/gofuzz v1.1.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/pubgo/xerror v0.1.7/go.mod h1:mH9VLp7gamZt025tetPFAiKwY2ggNRp6/OV8PGAvnp4=
+github.com/pubgo/xerror v0.1.9/go.mod h1:dWUHV0DkrH0PoP0dEV3H+h5mFb7ktHXLtBwynjdblzc=
 github.com/pubgo/xtest v0.1.1 h1:QMfUks/HwsmIhFH9jF6AoJ2YAr2/4jhwjuuNulJoxXo=
 github.com/pubgo/xtest v0.1.1/go.mod h1:HuEU2nwVwdf/3P28otmWjhlgSB3ldkgvFcjah6Wyueg=
 github.com/pubgo/xtest v0.1.2 h1:Fz/GBbeA//0DZ4uMfZOlAjxPupHIwZPaYZs1R9++PeY=
@@ -14,6 +15,8 @@ github.com/pubgo/xtest v0.1.4 h1:Uvc07P5L88XUnyOsz/F6f0DThOY/BKB1iDtF8SGHlpQ=
 github.com/pubgo/xtest v0.1.4/go.mod h1:JJQoEy17r2diuHe3PVXqTxp3Zf5mOOBrxSRCy05Gs6M=
 github.com/pubgo/xtest v0.1.5 h1:/tsCEhD63hVHpZlOBmHLDmN7RxuBhxgBl6T7JqJSuWM=
 github.com/pubgo/xtest v0.1.5/go.mod h1:JJQoEy17r2diuHe3PVXqTxp3Zf5mOOBrxSRCy05Gs6M=
+github.com/pubgo/xtest v0.1.6 h1:rP7RnNPKlAE+2eD0k3dSYb07EUoRAn1mN9C0IFUcMKQ=
+github.com/pubgo/xtest v0.1.6/go.mod h1:0/MrhdMlYAs9z6cHLVvn4Ygh7NnAD3+TEgO+9xhXk6k=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/assertions v1.1.0/go.mod h1:tcbTF8ujkAEcZ8TElKY+i30BzYlVhC/LOxJk7iOWnoo=
 github.com/smartystreets/goconvey v1.6.4/go.mod h1:syvi0/a8iFYH4r/RixwvyeAJjdLS9QV7WQ/tjFTllLA=

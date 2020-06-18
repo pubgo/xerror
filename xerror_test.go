@@ -27,7 +27,6 @@ func init22(a ...interface{}) (err error) {
 func init21(a ...interface{}) (err error) {
 	//defer xerror.RespErr(&err)
 	defer xerror.Resp(func(_err xerror.XRErr) {
-		xerror.Exit(_err)
 		_ = _err.Error()
 		//fmt.Println(_err.Error(), _err.Code())
 	})
@@ -47,8 +46,7 @@ func TestName(t *testing.T) {
 
 func TestTry(t *testing.T) {
 	fmt.Println(xerror.Try(func() {
-		//panic("hello")
-		xerror.Exit(fmt.Errorf("ss"))
+		panic("hello")
 	}))
 }
 
@@ -62,7 +60,6 @@ func BenchmarkNoPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		func() {
 			defer xerror.Resp(func(_err xerror.XRErr) {
-				//fmt.Println(_err.Error(), _err.Code())
 				_err.Error()
 			})
 
@@ -72,9 +69,6 @@ func BenchmarkNoPanic(b *testing.B) {
 }
 
 func TestNew(t *testing.T) {
-	defer xerror.Resp(func(err xerror.XRErr) {
-		fmt.Println(err.Error() == "reflect: Call using int as type string")
-	})
 	fn := xtest.TestFuncWith(func(code string, ms ...string) {
 		defer xerror.RespExit()
 		xrr := xerror.New(code, ms...)
@@ -83,6 +77,7 @@ func TestNew(t *testing.T) {
 		}
 	})
 	fn.In("错误信息的简介和标志, 类似于404", "", xtest.RangeString(10, 100))
-	fn.In("错误信息的介绍","")
+	fn.In("错误信息的介绍", "")
+	fn.In("错误信息的介绍", "11")
 	fn.Do()
 }
