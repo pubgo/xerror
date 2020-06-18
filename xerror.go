@@ -16,7 +16,6 @@ type XErr interface {
 
 type XRErr interface {
 	error
-	fmt.Formatter
 	As(err interface{}) bool
 	Is(err error) bool
 	Unwrap() error

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -86,20 +85,6 @@ func (t *xerror) p() string {
 	}
 	buf.WriteString("========================================================================================================================\n\n")
 	return buf.String()
-}
-
-// Format...
-func (t *xerror) Format(s fmt.State, verb rune) {
-	switch verb {
-	case 'v':
-		_, _ = io.WriteString(s, t.Detail())
-	case 's':
-		if t.xrr != nil {
-			_, _ = io.WriteString(s, t.Error())
-		}
-	case 'q':
-		_, _ = fmt.Fprintf(s, "%q", t.Error())
-	}
 }
 
 func (t *xerror) Is(err error) bool {

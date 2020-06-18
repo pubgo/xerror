@@ -43,8 +43,8 @@ func handle(err error, msg string, args ...interface{}) error {
 
 	switch err := err.(type) {
 	case *xerrorWrap:
+		err2.xrr = err
 		err2.Sub = err.xerror
-		err2.xrr = err.xrr
 		err2.Code1 = err.Code1
 	case *xerror:
 		err2.Sub = err
