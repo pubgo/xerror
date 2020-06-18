@@ -43,7 +43,7 @@ func handle(err error, msg string, args ...interface{}) error {
 	err2.Caller = callerWithDepth(callDepth + 1)
 
 	switch err := err.(type) {
-	case *xerrorWrap:
+	case *xerrorBase:
 		err2.xrr = err
 		err2.Sub = err.xerror
 		err2.Code1 = err.Code1

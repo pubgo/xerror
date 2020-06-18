@@ -2,7 +2,6 @@ package xerror
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -15,22 +14,6 @@ type xerror struct {
 	Msg    string  `json:"msg,omitempty"`
 	Caller string  `json:"caller,omitempty"`
 	Sub    *xerror `json:"sub,omitempty"`
-}
-
-func (t *xerror) New(code string, ms ...string) XErr {
-	var msg string
-	if len(ms) == 1 {
-		msg = ms[0]
-	}
-
-	code = t.Code1 + ": " + code
-	xw := &xerrorWrap{xerror: new(xerror)}
-	xw.Code1 = code
-	xw.Msg = msg
-	xw.xrr = errors.New(code)
-	xw.Caller = callerWithDepth(callDepth)
-
-	return xw
 }
 
 func (t *xerror) Code() string {
@@ -113,7 +96,7 @@ func (t *xerror) As(err interface{}) bool {
 	}
 }
 
-func (t *xerror) Detail() string {
+func (t *xerror) Stack() string {
 	if t == nil || t.xrr == nil || t.xrr == ErrDone {
 		return ""
 	}

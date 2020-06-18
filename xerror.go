@@ -10,32 +10,49 @@ import (
 )
 
 type XErr interface {
-	New(code string, ms ...string) XErr
-	XRErr
-}
-
-type XRErr interface {
 	error
 	As(err interface{}) bool
 	Is(err error) bool
 	Unwrap() error
 	Code() string
-	Detail() string
+	Stack() string
 	Reset()
 }
 
-type xerrorWrap struct {
+type XErrBase interface {
+	error
+	New(code string, ms ...string) XErrBase
+	Code() string
+}
+
+type xerrorBase struct {
 	*xerror
 }
 
-func New(code string, ms ...string) XErr {
+func (t *xerrorBase) New(code string, ms ...string) XErrBase {
+	var msg string
+	if len(ms) == 1 {
+		msg = ms[0]
+	}
+
+	code = t.Code1 + ": " + code
+	xw := &xerrorBase{xerror: new(xerror)}
+	xw.Code1 = code
+	xw.Msg = msg
+	xw.xrr = errors.New(code)
+	xw.Caller = callerWithDepth(callDepth)
+
+	return xw
+}
+
+func New(code string, ms ...string) XErrBase {
 
 	var msg string
 	if len(ms) == 1 {
 		msg = ms[0]
 	}
 
-	xw := &xerrorWrap{xerror: new(xerror)}
+	xw := &xerrorBase{xerror: new(xerror)}
 	xw.Code1 = code
 	xw.Msg = msg
 	xw.xrr = errors.New(code)
@@ -45,7 +62,7 @@ func New(code string, ms ...string) XErr {
 }
 
 func Try(fn func()) (err error) {
-	defer Resp(func(_err XRErr) {
+	defer Resp(func(_err XErr) {
 		err = handle(_err, "")
 		err.(*xerror).Caller = callerWithFunc(reflect.ValueOf(fn))
 	})
@@ -58,7 +75,7 @@ func RespErr(err *error) {
 }
 
 // Resp
-func Resp(f func(err XRErr)) {
+func Resp(f func(err XErr)) {
 	var err error
 	handleErr(&err, recover())
 	if err != nil {
@@ -188,9 +205,12 @@ func Unwrap(err error) error {
 		return nil
 	}
 
-	u, ok := err.(interface {
-		Unwrap() error
-	})
+	// 在xerror中xerrorBase就相当于errorString
+	if _, ok := err.(*xerrorBase); ok {
+		return err
+	}
+
+	u, ok := err.(interface{ Unwrap() error })
 	if !ok {
 		return err
 	}

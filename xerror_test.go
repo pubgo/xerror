@@ -26,7 +26,7 @@ func init22(a ...interface{}) (err error) {
 
 func init21(a ...interface{}) (err error) {
 	//defer xerror.RespErr(&err)
-	defer xerror.Resp(func(_err xerror.XRErr) {
+	defer xerror.Resp(func(_err xerror.XErr) {
 		_ = _err.Error()
 		//fmt.Println(_err.Error(), _err.Code())
 	})
@@ -59,7 +59,7 @@ func BenchmarkPanic(b *testing.B) {
 func BenchmarkNoPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		func() {
-			defer xerror.Resp(func(_err xerror.XRErr) {
+			defer xerror.Resp(func(_err xerror.XErr) {
 				_err.Error()
 			})
 
