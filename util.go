@@ -15,16 +15,17 @@ func handleErr(err *error, _err interface{}) {
 		return
 	}
 
-	switch _err.(type) {
+	switch _err := _err.(type) {
 	case *xerror:
-		*err = _err.(*xerror)
+		*err = _err
 	case error:
 		err1 := getXerror()
-		err1.xrr = _err.(error)
+		err1.xrr = _err
+		err1.Msg = fmt.Sprintf("%#v", _err)
 		*err = err1
 	case string:
 		err1 := getXerror()
-		err1.xrr = errors.New(_err.(string))
+		err1.xrr = errors.New(_err)
 		*err = err1
 	default:
 		logger.Fatalf("unknown type, %#v", _err)
@@ -38,15 +39,21 @@ func handle(err error, msg string, args ...interface{}) error {
 
 	err2 := getXerror()
 	err2.Msg = msg
-	err2.Caller = callerWithDepth()
-	if err1, ok := err.(*xerror); ok {
-		err2.Sub = err1
-		err2.xrr = err1.xrr
-		err2.Code1 = err1.Code1
+	err2.Caller = callerWithDepth(callDepth + 1)
 
-		err1.xrr = nil
-		err1.Code1 = ""
-	} else {
+	switch err := err.(type) {
+	case *xerrorWrap:
+		err2.Sub = err.xerror
+		err2.xrr = err.xrr
+		err2.Code1 = err.Code1
+	case *xerror:
+		err2.Sub = err
+		err2.xrr = err.xrr
+		err2.Code1 = err.Code1
+
+		err.xrr = nil
+		err.Code1 = ""
+	default:
 		err2.xrr = err
 	}
 

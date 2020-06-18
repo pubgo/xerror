@@ -32,7 +32,13 @@ func (t *xerror) New(ms ...string) XErr {
 	}
 
 	code = t.Code1 + ": " + code
-	return &xerror{Code1: code, Msg: msg, xrr: errors.New(code)}
+	xw := &xerrorWrap{xerror: new(xerror)}
+	xw.Code1 = code
+	xw.Msg = msg
+	xw.xrr = errors.New(code)
+	xw.Caller = callerWithDepth(callDepth)
+
+	return xw
 }
 
 func (t *xerror) Code() string {
@@ -53,6 +59,33 @@ func (t *xerror) Unwrap() error {
 	}
 
 	return t.xrr
+}
+
+func (t *xerror) p() string {
+	if t == nil || t.xrr == nil {
+		return ""
+	}
+
+	var buf = &strings.Builder{}
+	defer buf.Reset()
+
+	xrr := t
+	for xrr != nil {
+		buf.WriteString("========================================================================================================================\n")
+		if xrr.xrr != nil {
+			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorize("Err", colorRed), xrr.xrr))
+		}
+		if xrr.Msg != "" {
+			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorize("Msg", colorGreen), xrr.Msg))
+		}
+		if xrr.Code1 != "" {
+			buf.WriteString(fmt.Sprintf("  %s]: %s\n", colorize("Code", colorGreen), xrr.Code1))
+		}
+		buf.WriteString(fmt.Sprintf("%s]: %s\n", colorize("Caller", colorYellow), xrr.Caller))
+		xrr = xrr.Sub
+	}
+	buf.WriteString("========================================================================================================================\n\n")
+	return buf.String()
 }
 
 // Format...
@@ -107,13 +140,7 @@ func (t *xerror) Detail() string {
 	}
 
 	t.Err = t.xrr.Error()
-	var dt []byte
-
-	if Debug {
-		dt, _ = json.MarshalIndent(t, "", "\t")
-	} else {
-		dt, _ = json.Marshal(t)
-	}
+	dt, _ := json.Marshal(t)
 	return string(dt)
 }
 

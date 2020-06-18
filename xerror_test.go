@@ -25,6 +25,7 @@ func init22(a ...interface{}) (err error) {
 func init21(a ...interface{}) (err error) {
 	//defer xerror.RespErr(&err)
 	defer xerror.Resp(func(_err xerror.XRErr) {
+		xerror.Exit(_err)
 		_ = _err.Error()
 		//fmt.Println(_err.Error(), _err.Code())
 	})
@@ -47,7 +48,7 @@ func TestTry(t *testing.T) {
 	xerror.Debug = true
 	fmt.Println(xerror.Try(func() error {
 		//panic("hello")
-		xerror.Panic(fmt.Errorf("ss"))
+		xerror.Exit(fmt.Errorf("ss"))
 		return fmt.Errorf("ss")
 	}))
 }

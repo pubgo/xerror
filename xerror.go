@@ -25,6 +25,10 @@ type XRErr interface {
 	Reset()
 }
 
+type xerrorWrap struct {
+	*xerror
+}
+
 func New(ms ...string) XErr {
 	if len(ms) == 0 {
 		logger.Fatalln("the parameter cannot be empty")
@@ -38,7 +42,13 @@ func New(ms ...string) XErr {
 		code, msg = ms[0], ms[1]
 	}
 
-	return &xerror{Code1: code, Msg: msg, xrr: errors.New(code)}
+	xw := &xerrorWrap{xerror: new(xerror)}
+	xw.Code1 = code
+	xw.Msg = msg
+	xw.xrr = errors.New(code)
+	xw.Caller = callerWithDepth(callDepth)
+
+	return xw
 }
 
 func Try(fn func() error) (err error) {
@@ -73,10 +83,8 @@ func RespExit() {
 		return
 	}
 
-	fmt.Printf("%v\n", err)
-	if Debug {
-		debug.PrintStack()
-	}
+	fmt.Println(handle(err, "").(*xerror).p())
+	debug.PrintStack()
 	os.Exit(1)
 }
 
@@ -159,10 +167,8 @@ func ExitErr(_ interface{}, err error) {
 		return
 	}
 
-	fmt.Printf("%v\n", handle(err, ""))
-	if Debug {
-		debug.PrintStack()
-	}
+	fmt.Println(handle(err, "").(*xerror).p())
+	debug.PrintStack()
 	os.Exit(1)
 }
 
@@ -172,10 +178,8 @@ func ExitF(err error, msg string, args ...interface{}) {
 		return
 	}
 
-	fmt.Printf("%v\n", handle(err, msg, args...))
-	if Debug {
-		debug.PrintStack()
-	}
+	fmt.Println(handle(err, "").(*xerror).p())
+	debug.PrintStack()
 	os.Exit(1)
 }
 
@@ -184,10 +188,8 @@ func Exit(err error) {
 		return
 	}
 
-	fmt.Printf("%v\n", handle(err, ""))
-	if Debug {
-		debug.PrintStack()
-	}
+	fmt.Println(handle(err, "").(*xerror).p())
+	debug.PrintStack()
 	os.Exit(1)
 }
 
