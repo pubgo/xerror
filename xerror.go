@@ -32,7 +32,7 @@ func New(code string, ms ...string) XErr {
 
 	var msg string
 	if len(ms) == 1 {
-		msg = ms[1]
+		msg = ms[0]
 	}
 
 	xw := &xerrorWrap{xerror: new(xerror)}
@@ -44,16 +44,13 @@ func New(code string, ms ...string) XErr {
 	return xw
 }
 
-func Try(fn func() error) (err error) {
+func Try(fn func()) (err error) {
 	defer Resp(func(_err XRErr) {
 		err = handle(_err, "")
 		err.(*xerror).Caller = callerWithFunc(reflect.ValueOf(fn))
 	})
-	err = fn()
-	if isErrNil(err) {
-		return
-	}
-	panic(handle(err, ""))
+	fn()
+	return
 }
 
 func RespErr(err *error) {
@@ -186,38 +183,44 @@ func Exit(err error) {
 	os.Exit(1)
 }
 
-// ext from errors
+func Unwrap(err error) error {
+	return errors.Unwrap(err)
+}
+
+func Is(err, target error) bool {
+	return errors.Is(err, target)
+}
+
 var (
-	UnWrap = errors.Unwrap
-	Is     = errors.Is
-	As     = func(err error, target interface{}) bool {
-		if target == nil {
-			return false
-		}
-
-		val := reflect.ValueOf(target)
-		typ := val.Type()
-
-		if typ.Kind() != reflect.Ptr || val.IsNil() {
-			return false
-		}
-
-		if e := typ.Elem(); e.Kind() != reflect.Interface && !typ.Implements(errorType) {
-			return false
-		}
-
-		targetType := typ.Elem()
-		for err != nil {
-			if reflect.TypeOf(err).AssignableTo(targetType) {
-				val.Elem().Set(reflect.ValueOf(err))
-				return true
-			}
-			if x, ok := err.(interface{ As(interface{}) bool }); ok && x.As(target) {
-				return true
-			}
-			err = UnWrap(err)
-		}
-		return false
-	}
 	errorType = reflect.TypeOf((*error)(nil)).Elem()
 )
+
+func As(err error, target interface{}) bool {
+	if target == nil {
+		return false
+	}
+
+	val := reflect.ValueOf(target)
+	typ := val.Type()
+
+	if typ.Kind() != reflect.Ptr || val.IsNil() {
+		return false
+	}
+
+	if e := typ.Elem(); e.Kind() != reflect.Interface && !typ.Implements(errorType) {
+		return false
+	}
+
+	targetType := typ.Elem()
+	for err != nil {
+		if reflect.TypeOf(err).AssignableTo(targetType) {
+			val.Elem().Set(reflect.ValueOf(err))
+			return true
+		}
+		if x, ok := err.(interface{ As(interface{}) bool }); ok && x.As(target) {
+			return true
+		}
+		err = Unwrap(err)
+	}
+	return false
+}

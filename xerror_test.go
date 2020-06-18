@@ -3,6 +3,8 @@ package xerror_test
 import (
 	"fmt"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xerror/errs"
+	"github.com/pubgo/xtest"
 	"testing"
 )
 
@@ -17,7 +19,7 @@ func init22(a ...interface{}) (err error) {
 	//_ = "ss" + "sss"
 	//xrr.Panic(nil)
 	//xerror.PanicF(nil, "sssss %#v", a)
-	xerror.PanicF(xerror.ErrBadRequest, "ssssss wrap")
+	xerror.PanicF(errs.ErrBadRequest, "ssssss wrap")
 	//xerror.PanicF(fmt.Errorf("ss"), "sssss %#v", a)
 	return
 }
@@ -38,18 +40,15 @@ func init21(a ...interface{}) (err error) {
 }
 
 func TestName(t *testing.T) {
-	xerror.Debug = true
 
 	fmt.Println(init21(1, 2, 3))
 	//Exit(init21(1, 2, 3))
 }
 
 func TestTry(t *testing.T) {
-	xerror.Debug = true
-	fmt.Println(xerror.Try(func() error {
+	fmt.Println(xerror.Try(func() {
 		//panic("hello")
 		xerror.Exit(fmt.Errorf("ss"))
-		return fmt.Errorf("ss")
 	}))
 }
 
@@ -70,4 +69,20 @@ func BenchmarkNoPanic(b *testing.B) {
 			xerror.PanicF(nil, "hello")
 		}()
 	}
+}
+
+func TestNew(t *testing.T) {
+	defer xerror.Resp(func(err xerror.XRErr) {
+		fmt.Println(err.Error() == "reflect: Call using int as type string")
+	})
+	fn := xtest.TestFuncWith(func(code string, ms ...string) {
+		defer xerror.RespExit()
+		xrr := xerror.New(code, ms...)
+		if code != xrr.Code() {
+			xerror.Exit(xrr)
+		}
+	})
+	fn.In("错误信息的简介和标志, 类似于404", "", xtest.RangeString(10, 100))
+	fn.In("错误信息的介绍","")
+	fn.Do()
 }

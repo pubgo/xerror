@@ -3,11 +3,9 @@ package xerror
 import (
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 )
 
 func handleErr(err *error, _err interface{}) {
@@ -28,7 +26,10 @@ func handleErr(err *error, _err interface{}) {
 		err1.xrr = errors.New(_err)
 		*err = err1
 	default:
-		logger.Fatalf("unknown type, %#v", _err)
+		err1 := getXerror()
+		err1.xrr = ErrUnknownType
+		err1.Msg = fmt.Sprintf("%#v", _err)
+		*err = err1
 	}
 }
 
@@ -60,9 +61,9 @@ func handle(err error, msg string, args ...interface{}) error {
 	return err2
 }
 
-type Frame uintptr
+type frame uintptr
 
-func (f Frame) pc() uintptr { return uintptr(f) - 1 }
+func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func callerWithDepth(callDepths ...int) string {
 	var cd = callDepth
@@ -75,10 +76,10 @@ func callerWithDepth(callDepths ...int) string {
 		return ""
 	}
 
-	f := Frame(pcs[0])
+	f := frame(pcs[0])
 	fn := runtime.FuncForPC(f.pc())
 	if fn == nil {
-		return "unknown func"
+		return "unknown type"
 	}
 
 	file, line := fn.FileLine(f.pc())
@@ -87,7 +88,7 @@ func callerWithDepth(callDepths ...int) string {
 
 func callerWithFunc(fn reflect.Value) string {
 	if !fn.IsValid() || fn.IsNil() || fn.Kind() != reflect.Func {
-		logger.Fatal("func error")
+		panic(ErrNotFuncType)
 	}
 	var _fn = fn.Pointer()
 	var file, line = runtime.FuncForPC(_fn).FileLine(_fn)
@@ -96,13 +97,4 @@ func callerWithFunc(fn reflect.Value) string {
 
 func isErrNil(err error) bool {
 	return err == nil || err == ErrDone
-}
-
-func env(es ...string) string {
-	for _, e := range es {
-		if v := os.Getenv(strings.ToUpper(e)); v != "" {
-			return v
-		}
-	}
-	return ""
 }

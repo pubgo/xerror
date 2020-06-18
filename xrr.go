@@ -20,7 +20,7 @@ type xerror struct {
 func (t *xerror) New(code string, ms ...string) XErr {
 	var msg string
 	if len(ms) == 1 {
-		msg = ms[1]
+		msg = ms[0]
 	}
 
 	code = t.Code1 + ": " + code
