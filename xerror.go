@@ -184,11 +184,36 @@ func Exit(err error) {
 }
 
 func Unwrap(err error) error {
-	return errors.Unwrap(err)
+	if isErrNil(err) {
+		return nil
+	}
+
+	u, ok := err.(interface {
+		Unwrap() error
+	})
+	if !ok {
+		return err
+	}
+	return u.Unwrap()
 }
 
 func Is(err, target error) bool {
-	return errors.Is(err, target)
+	if target == nil {
+		return err == target
+	}
+
+	isComparable := reflect.TypeOf(target).Comparable()
+	for {
+		if isComparable && err == target {
+			return true
+		}
+		if x, ok := err.(interface{ Is(error) bool }); ok && x.Is(target) {
+			return true
+		}
+		if err = Unwrap(err); err == nil {
+			return false
+		}
+	}
 }
 
 var (
