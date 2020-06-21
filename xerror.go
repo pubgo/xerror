@@ -74,6 +74,12 @@ func RespErr(err *error) {
 	handleErr(err, recover())
 }
 
+func RespChanErr(errChan chan<- error) {
+	var err error
+	handleErr(&err, recover())
+	errChan <- err
+}
+
 // Resp
 func Resp(f func(err XErr)) {
 	var err error
