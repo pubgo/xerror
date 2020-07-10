@@ -1,10 +1,10 @@
 package xerror_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/errs"
-	"github.com/pubgo/xtest"
 	"testing"
 )
 
@@ -25,11 +25,12 @@ func init22(a ...interface{}) (err error) {
 }
 
 func init21(a ...interface{}) (err error) {
-	//defer xerror.RespErr(&err)
-	defer xerror.Resp(func(_err xerror.XErr) {
-		_ = _err.Error()
+	defer xerror.RespErr(&err)
+	//defer xerror.Resp(func(_err xerror.XErr) {
+		//fmt.Println(_err.Stack())
+		//_ = _err.Error()
 		//fmt.Println(_err.Error(), _err.Code())
-	})
+	//})
 
 	//fmt.Println(a...)
 	//xrr.Panic(fmt.Errorf("ss"))
@@ -39,8 +40,11 @@ func init21(a ...interface{}) (err error) {
 }
 
 func TestName(t *testing.T) {
+	sss:=init21(1, 2, 3)
+	dt, _ := json.Marshal(sss)
+	fmt.Println( string(dt))
+	xerror.Exit(sss)
 
-	fmt.Println(init21(1, 2, 3))
 	//Exit(init21(1, 2, 3))
 }
 
@@ -66,18 +70,4 @@ func BenchmarkNoPanic(b *testing.B) {
 			xerror.PanicF(nil, "hello")
 		}()
 	}
-}
-
-func TestNew(t *testing.T) {
-	fn := xtest.TestFuncWith(func(code string, ms ...string) {
-		defer xerror.RespExit()
-		xrr := xerror.New(code, ms...)
-		if code != xrr.Code() {
-			xerror.Exit(xrr)
-		}
-	})
-	fn.In("错误信息的简介和标志, 类似于404", "", xtest.RangeString(10, 100))
-	fn.In("错误信息的介绍", "")
-	fn.In("错误信息的介绍", "11")
-	fn.Do()
 }

@@ -1,7 +1,6 @@
 package xerror
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -14,24 +13,12 @@ func handleErr(err *error, _err interface{}) {
 	}
 
 	switch _err := _err.(type) {
-	case *xerror:
-		*err = _err
-	case *xerrorBase:
-		*err = _err.xerror
 	case error:
-		err1 := getXerror()
-		err1.xrr = _err
-		err1.Msg = fmt.Sprintf("%#v", _err)
-		*err = err1
+		*err = _err
 	case string:
-		err1 := getXerror()
-		err1.xrr = errors.New(_err)
-		*err = err1
+		*err = New("error", _err)
 	default:
-		err1 := getXerror()
-		err1.xrr = ErrUnknownType
-		err1.Msg = fmt.Sprintf("%#v", _err)
-		*err = err1
+		*err = New(ErrUnknownType.Code, fmt.Sprintf("%v", _err))
 	}
 }
 
@@ -40,26 +27,10 @@ func handle(err error, msg string, args ...interface{}) error {
 		msg = fmt.Sprintf(msg, args...)
 	}
 
-	err2 := getXerror()
+	err2 := &xerror{}
 	err2.Msg = msg
 	err2.Caller = callerWithDepth(callDepth + 1)
-
-	switch err := err.(type) {
-	case *xerrorBase:
-		err2.xrr = err
-		err2.Sub = err.xerror
-		err2.Code1 = err.Code1
-	case *xerror:
-		err2.Sub = err
-		err2.xrr = err.xrr
-		err2.Code1 = err.Code1
-
-		err.xrr = nil
-		err.Code1 = ""
-	default:
-		err2.xrr = err
-	}
-
+	err2.Cause1 = err
 	return err2
 }
 
@@ -99,4 +70,40 @@ func callerWithFunc(fn reflect.Value) string {
 
 func isErrNil(err error) bool {
 	return err == nil || err == ErrDone
+}
+
+func trans(err error) *xerror {
+	if err == nil {
+		return nil
+	}
+
+	switch err := err.(type) {
+	case *xerrorBase:
+		return &xerror{
+			Code1:  err.Code,
+			Msg:    err.Msg,
+			Caller: err.Caller,
+		}
+	case *xerror:
+		return err
+	default:
+		return &xerror{
+			Cause1: err,
+		}
+	}
+}
+
+func isXerror(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	switch err.(type) {
+	case *xerrorBase:
+		return true
+	case *xerror:
+		return true
+	default:
+		return false
+	}
 }

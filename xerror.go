@@ -1,7 +1,6 @@
 package xerror
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,48 +13,21 @@ type XErr interface {
 	As(err interface{}) bool
 	Is(err error) bool
 	Unwrap() error
+	Cause() error
 	Code() string
+	Format(s fmt.State, verb rune)
 	Stack() string
-	Reset()
 }
 
-type XErrBase interface {
-	error
-	New(code string, ms ...string) XErrBase
-	Code() string
-}
-
-type xerrorBase struct {
-	*xerror
-}
-
-func (t *xerrorBase) New(code string, ms ...string) XErrBase {
+func New(code string, ms ...string) *xerrorBase {
 	var msg string
-	if len(ms) == 1 {
+	if len(ms) > 0 {
 		msg = ms[0]
 	}
 
-	code = t.Code1 + ": " + code
-	xw := &xerrorBase{xerror: new(xerror)}
-	xw.Code1 = code
+	xw := &xerrorBase{}
+	xw.Code = code
 	xw.Msg = msg
-	xw.xrr = errors.New(code)
-	xw.Caller = callerWithDepth(callDepth)
-
-	return xw
-}
-
-func New(code string, ms ...string) XErrBase {
-
-	var msg string
-	if len(ms) == 1 {
-		msg = ms[0]
-	}
-
-	xw := &xerrorBase{xerror: new(xerror)}
-	xw.Code1 = code
-	xw.Msg = msg
-	xw.xrr = errors.New(code)
 	xw.Caller = callerWithDepth(callDepth)
 
 	return xw
@@ -72,12 +44,6 @@ func Try(fn func()) (err error) {
 
 func RespErr(err *error) {
 	handleErr(err, recover())
-}
-
-func RespChanErr(errChan chan<- error) {
-	var err error
-	handleErr(&err, recover())
-	errChan <- err
 }
 
 // Resp
@@ -113,7 +79,6 @@ func PanicF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
-
 	panic(handle(err, msg, args...))
 }
 
@@ -191,7 +156,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 		return
 	}
 
-	fmt.Println(handle(err, "").(*xerror).p())
+	fmt.Println(handle(err, msg, args...).(*xerror).p())
 	debug.PrintStack()
 	os.Exit(1)
 }
@@ -207,24 +172,18 @@ func Exit(err error) {
 }
 
 func Unwrap(err error) error {
-	if isErrNil(err) {
-		return nil
+	for !isErrNil(err) {
+		wrap, ok := err.(interface{ Unwrap() error })
+		if !ok {
+			break
+		}
+		err = wrap.Unwrap()
 	}
-
-	// 在xerror中xerrorBase就相当于errorString
-	if _, ok := err.(*xerrorBase); ok {
-		return err
-	}
-
-	u, ok := err.(interface{ Unwrap() error })
-	if !ok {
-		return err
-	}
-	return u.Unwrap()
+	return err
 }
 
 func Is(err, target error) bool {
-	if target == nil {
+	if isErrNil(target) {
 		return err == target
 	}
 
@@ -236,7 +195,7 @@ func Is(err, target error) bool {
 		if x, ok := err.(interface{ Is(error) bool }); ok && x.Is(target) {
 			return true
 		}
-		if err = Unwrap(err); err == nil {
+		if err = Unwrap(err); isErrNil(err) {
 			return false
 		}
 	}
@@ -263,7 +222,7 @@ func As(err error, target interface{}) bool {
 	}
 
 	targetType := typ.Elem()
-	for err != nil {
+	for !isErrNil(err) {
 		if reflect.TypeOf(err).AssignableTo(targetType) {
 			val.Elem().Set(reflect.ValueOf(err))
 			return true
@@ -274,4 +233,16 @@ func As(err error, target interface{}) bool {
 		err = Unwrap(err)
 	}
 	return false
+}
+
+// Cause returns the underlying cause of the error, if possible.
+func Cause(err error) error {
+	for !isErrNil(err) {
+		cause, ok := err.(interface{ Cause() error })
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return err
 }
