@@ -1,7 +1,9 @@
 package xerror
 
 import (
+	"errors"
 	"fmt"
+	"github.com/pubgo/xerror/xerror_core"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -16,9 +18,9 @@ func handleErr(err *error, _err interface{}) {
 	case error:
 		*err = _err
 	case string:
-		*err = New("error", _err)
+		*err = errors.New(_err)
 	default:
-		*err = New(ErrUnknownType.Code, fmt.Sprintf("%v", _err))
+		*err = New(ErrUnknownType.Code, fmt.Sprintf("%+v", _err))
 	}
 }
 
@@ -39,6 +41,10 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func callerWithDepth(callDepths ...int) string {
+	if !xerror_core.IsCaller {
+		return ""
+	}
+
 	var cd = callDepth
 	if len(callDepths) > 0 {
 		cd = callDepths[0]
@@ -90,20 +96,5 @@ func trans(err error) *xerror {
 		return &xerror{
 			Cause1: err,
 		}
-	}
-}
-
-func isXerror(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	switch err.(type) {
-	case *xerrorBase:
-		return true
-	case *xerror:
-		return true
-	default:
-		return false
 	}
 }

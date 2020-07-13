@@ -1,51 +1,31 @@
 package xerror_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/errs"
+	"github.com/pubgo/xerror/xerror_core"
 	"testing"
 )
 
-func init22(a ...interface{}) (err error) {
+func a1(a ...interface{}) (err error) {
 	defer xerror.RespErr(&err)
-
-	//fmt.Println(a...)
-	//xrr.Panic(fmt.Errorf("ss"))
-	//Exit(New(""))
-	//_ = fmt.Sprintf("ss")
-	//_ = fmt.Errorf("ss")
-	//_ = "ss" + "sss"
-	//xrr.Panic(nil)
-	//xerror.PanicF(nil, "sssss %#v", a)
-	xerror.PanicF(errs.ErrBadRequest, "ssssss wrap")
-	//xerror.PanicF(fmt.Errorf("ss"), "sssss %#v", a)
+	xerror.PanicF(errs.ErrBadRequest, "test %+v", a)
 	return
 }
 
-func init21(a ...interface{}) (err error) {
+func a2(a ...interface{}) (err error) {
 	defer xerror.RespErr(&err)
-	//defer xerror.Resp(func(_err xerror.XErr) {
-		//fmt.Println(_err.Stack())
-		//_ = _err.Error()
-		//fmt.Println(_err.Error(), _err.Code())
-	//})
-
-	//fmt.Println(a...)
-	//xrr.Panic(fmt.Errorf("ss"))
-	//xrr.PanicF(init22(a...), "sssss %#v", a)
-	xerror.Panic(init22(a...))
+	xerror.Panic(a1(a...))
 	return
 }
 
 func TestName(t *testing.T) {
-	sss:=init21(1, 2, 3)
-	dt, _ := json.Marshal(sss)
-	fmt.Println( string(dt))
-	xerror.Exit(sss)
-
-	//Exit(init21(1, 2, 3))
+	xerror_core.IsCaller = false
+	defer xerror.Resp(func(err xerror.XErr) {
+		fmt.Println(err.Stack())
+	})
+	xerror.Panic(a2(1, 2, 4, 5))
 }
 
 func TestTry(t *testing.T) {
@@ -56,18 +36,20 @@ func TestTry(t *testing.T) {
 
 func BenchmarkPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		init21(1, 2, 3)
+		_ = func() (err error) {
+			defer xerror.RespErr(&err)
+			xerror.PanicF(errs.ErrBadRequest, "测试Panic")
+			return
+		}()
 	}
 }
 
 func BenchmarkNoPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		func() {
-			defer xerror.Resp(func(_err xerror.XErr) {
-				_err.Error()
-			})
-
-			xerror.PanicF(nil, "hello")
+		_ = func() (err error) {
+			defer xerror.RespErr(&err)
+			xerror.PanicF(nil, "测试NoPanic")
+			return
 		}()
 	}
 }

@@ -50,9 +50,15 @@ func RespErr(err *error) {
 func Resp(f func(err XErr)) {
 	var err error
 	handleErr(&err, recover())
-	if err != nil {
-		f(err.(XErr))
+	if err == nil {
+		return
 	}
+
+	if err, ok := err.(XErr); ok {
+		f(err.(XErr))
+		return
+	}
+	f(&xerror{Cause1: err, Caller: callerWithDepth(callDepth + 1)})
 }
 
 func RespExit() {
@@ -188,17 +194,21 @@ func Is(err, target error) bool {
 	}
 
 	isComparable := reflect.TypeOf(target).Comparable()
-	for {
+	for !isErrNil(err) {
 		if isComparable && err == target {
 			return true
 		}
 		if x, ok := err.(interface{ Is(error) bool }); ok && x.Is(target) {
 			return true
 		}
-		if err = Unwrap(err); isErrNil(err) {
+
+		if wrap, ok := err.(interface{ Unwrap() error }); !ok {
 			return false
+		} else {
+			err = wrap.Unwrap()
 		}
 	}
+	return false
 }
 
 var (
@@ -230,7 +240,10 @@ func As(err error, target interface{}) bool {
 		if x, ok := err.(interface{ As(interface{}) bool }); ok && x.As(target) {
 			return true
 		}
-		err = Unwrap(err)
+		wrap, ok := err.(interface{ Unwrap() error })
+		if ok {
+			err = wrap.Unwrap()
+		}
 	}
 	return false
 }
