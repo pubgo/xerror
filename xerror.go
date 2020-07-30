@@ -68,7 +68,7 @@ func RespExit() {
 		return
 	}
 
-	fmt.Println(handle(err, "").(*xerror).p())
+	fmt.Println(handle(err, "").p())
 	debug.PrintStack()
 	os.Exit(1)
 }
@@ -151,7 +151,7 @@ func ExitErr(_ interface{}, err error) {
 		return
 	}
 
-	fmt.Println(handle(err, "").(*xerror).p())
+	fmt.Println(handle(err, "").p())
 	debug.PrintStack()
 	os.Exit(1)
 }
@@ -162,7 +162,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 		return
 	}
 
-	fmt.Println(handle(err, msg, args...).(*xerror).p())
+	fmt.Println(handle(err, msg, args...).p())
 	debug.PrintStack()
 	os.Exit(1)
 }
@@ -172,7 +172,7 @@ func Exit(err error) {
 		return
 	}
 
-	fmt.Println(handle(err, "").(*xerror).p())
+	fmt.Println(handle(err, "").p())
 	debug.PrintStack()
 	os.Exit(1)
 }

@@ -24,7 +24,7 @@ func handleErr(err *error, _err interface{}) {
 	}
 }
 
-func handle(err error, msg string, args ...interface{}) error {
+func handle(err error, msg string, args ...interface{}) *xerror {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
@@ -93,8 +93,6 @@ func trans(err error) *xerror {
 	case *xerror:
 		return err
 	default:
-		return &xerror{
-			Cause1: err,
-		}
+		return nil
 	}
 }

@@ -1,6 +1,7 @@
 package xerror_test
 
 import (
+	"errors"
 	"fmt"
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/errs"
@@ -26,6 +27,10 @@ func TestName(t *testing.T) {
 		fmt.Println(err.Stack())
 	})
 	xerror.Panic(a2(1, 2, 4, 5))
+}
+
+func TestExit(t *testing.T) {
+	xerror.Exit(errors.New("ss"))
 }
 
 func TestTry(t *testing.T) {
