@@ -11,12 +11,12 @@ import (
 
 type XErr interface {
 	error
-	As(err interface{}) bool
-	Is(err error) bool
-	Unwrap() error
-	Cause() error
+	//As(err interface{}) bool
+	//Is(err error) bool
+	//Unwrap() error
+	//Cause() error
 	Code() string
-	Format(s fmt.State, verb rune)
+	//Format(s fmt.State, verb rune)
 	Stack() string
 }
 
