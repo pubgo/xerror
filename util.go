@@ -20,7 +20,7 @@ func handleErr(err *error, _err interface{}) {
 	case string:
 		*err = errors.New(_err)
 	default:
-		*err = New(ErrUnknownType.Code, fmt.Sprintf("%+v", _err))
+		*err = WrapF(ErrUnknownType, "%+v", _err)
 	}
 }
 
@@ -31,7 +31,7 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 
 	err2 := &xerror{}
 	err2.Msg = msg
-	err2.Caller = callerWithDepth(callDepth + 1)
+	err2.Caller = callerWithDepth(xerror_core.CallDepth + 1)
 	err2.Cause1 = err
 	return err2
 }
@@ -45,7 +45,7 @@ func callerWithDepth(callDepths ...int) string {
 		return ""
 	}
 
-	var cd = callDepth
+	var cd = xerror_core.CallDepth
 	if len(callDepths) > 0 {
 		cd = callDepths[0]
 	}
@@ -58,7 +58,7 @@ func callerWithDepth(callDepths ...int) string {
 	f := frame(pcs[0])
 	fn := runtime.FuncForPC(f.pc())
 	if fn == nil {
-		return "unknown type"
+		return ErrUnknownType.Error()
 	}
 
 	file, line := fn.FileLine(f.pc())
@@ -67,7 +67,7 @@ func callerWithDepth(callDepths ...int) string {
 
 func callerWithFunc(fn reflect.Value) string {
 	if !fn.IsValid() || fn.IsNil() || fn.Kind() != reflect.Func {
-		panic(ErrNotFuncType)
+		Panic(ErrNotFuncType)
 	}
 	var _fn = fn.Pointer()
 	var file, line = runtime.FuncForPC(_fn).FileLine(_fn)
