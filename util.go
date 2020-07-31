@@ -58,7 +58,7 @@ func callerWithDepth(callDepths ...int) string {
 	f := frame(pcs[0])
 	fn := runtime.FuncForPC(f.pc())
 	if fn == nil {
-		return ErrUnknownType.Error()
+		return "unknown type"
 	}
 
 	file, line := fn.FileLine(f.pc())
@@ -67,7 +67,7 @@ func callerWithDepth(callDepths ...int) string {
 
 func callerWithFunc(fn reflect.Value) string {
 	if !fn.IsValid() || fn.IsNil() || fn.Kind() != reflect.Func {
-		Panic(ErrNotFuncType)
+		panic(ErrNotFuncType)
 	}
 	var _fn = fn.Pointer()
 	var file, line = runtime.FuncForPC(_fn).FileLine(_fn)
