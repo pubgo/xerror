@@ -3,12 +3,13 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pubgo/xerror/xerror_core"
 	"io"
 	"strings"
 )
 
 type xerrorBase struct {
-	Code  string `json:"code,omitempty"`
+	Code   string `json:"code,omitempty"`
 	Msg    string `json:"msg,omitempty"`
 	Caller string `json:"caller,omitempty"`
 }
@@ -27,7 +28,7 @@ func (t *xerrorBase) New(code string, ms ...string) error {
 	xw := &xerrorBase{}
 	xw.Code = code
 	xw.Msg = msg
-	xw.Caller = callerWithDepth(callDepth)
+	xw.Caller = callerWithDepth(xerror_core.CallDepth)
 
 	return xw
 }
@@ -72,15 +73,15 @@ func (t *xerror) p() string {
 	for xrr != nil {
 		buf.WriteString("========================================================================================================================\n")
 		if xrr.Cause1 != nil {
-			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorize("Err", colorRed), xrr.Cause1))
+			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorRed.P("Err"), xrr.Cause1))
 		}
 		if xrr.Msg != "" {
-			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorize("Msg", colorGreen), xrr.Msg))
+			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorGreen.P("Msg"), xrr.Msg))
 		}
 		if xrr.Code1 != "" {
-			buf.WriteString(fmt.Sprintf("  %s]: %s\n", colorize("Code", colorGreen), xrr.Code1))
+			buf.WriteString(fmt.Sprintf("  %s]: %s\n", colorGreen.P("Code"), xrr.Code1))
 		}
-		buf.WriteString(fmt.Sprintf("%s]: %s\n", colorize("Caller", colorYellow), xrr.Caller))
+		buf.WriteString(fmt.Sprintf("%s]: %s\n", colorYellow.P("Caller"), xrr.Caller))
 		xrr = trans(xrr.Cause1)
 	}
 	buf.WriteString("========================================================================================================================\n\n")
@@ -93,6 +94,8 @@ func (t *xerror) Is(err error) bool {
 	}
 
 	switch err := err.(type) {
+	case *xerrorBase:
+		return err == t.Cause1 || err.Code == t.Code1
 	case *xerror:
 		return err == t || err.Cause1 == t.Cause1 || err.Code1 == t.Code1
 	case error:
@@ -108,6 +111,8 @@ func (t *xerror) As(err interface{}) bool {
 	}
 
 	switch e := err.(type) {
+	case *xerrorBase:
+		return strings.HasPrefix(t.Code1, e.Code)
 	case *xerror:
 		return strings.HasPrefix(t.Code1, e.Code1)
 	case error:

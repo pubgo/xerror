@@ -2,8 +2,11 @@ package xerror
 
 import "fmt"
 
+// Color represents a text color.
+type color uint8
+
 const (
-	colorBlack = iota + 30
+	colorBlack color = iota + 30
 	colorRed
 	colorGreen
 	colorYellow
@@ -11,11 +14,11 @@ const (
 	colorMagenta
 	colorCyan
 	colorWhite
-
-	colorBold     = 1
-	colorDarkGray = 90
+	colorBold     color = 1
+	colorDarkGray color = 90
 )
 
-func colorize(s interface{}, c int) string {
-	return fmt.Sprintf("\x1b[%dm%v\x1b[0m", c, s)
+// Add adds the coloring to the given string.
+func (c color) P(s string, args ...interface{}) string {
+	return fmt.Sprintf("\x1b[%dm%s\x1b[0m", uint8(c), fmt.Sprintf(s, args...))
 }
