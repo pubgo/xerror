@@ -1,6 +1,7 @@
 package xerror
 
 import (
+	"errors"
 	"fmt"
 	"github.com/pubgo/xerror/xerror_core"
 	"net/http"
@@ -11,12 +12,6 @@ import (
 
 type XErr interface {
 	error
-	//As(err interface{}) bool
-	//Is(err error) bool
-	//Unwrap() error
-	//Cause() error
-	Code() string
-	//Format(s fmt.State, verb rune)
 	Stack() string
 }
 
@@ -27,7 +22,7 @@ func New(code string, ms ...string) *xerrorBase {
 	}
 
 	xw := &xerrorBase{}
-	xw.Code = code
+	xw.Code1 = code
 	xw.Msg = msg
 	xw.Caller = callerWithDepth(xerror_core.CallDepth)
 
@@ -178,85 +173,15 @@ func Exit(err error) {
 	os.Exit(1)
 }
 
-func Unwrap(err error) error {
-	for !isErrNil(err) {
-		wrap, ok := err.(interface{ Unwrap() error })
-		if !ok {
-			break
-		}
-		err = wrap.Unwrap()
-	}
-	return err
-}
-
-func Is(err, target error) bool {
-	if isErrNil(target) {
-		return err == target
-	}
-
-	isComparable := reflect.TypeOf(target).Comparable()
-	for !isErrNil(err) {
-		if isComparable && err == target {
-			return true
-		}
-		if x, ok := err.(interface{ Is(error) bool }); ok && x.Is(target) {
-			return true
-		}
-
-		if wrap, ok := err.(interface{ Unwrap() error }); !ok {
-			return false
-		} else {
-			err = wrap.Unwrap()
-		}
-	}
-	return false
-}
-
-var (
-	errorType = reflect.TypeOf((*error)(nil)).Elem()
-)
-
-func As(err error, target interface{}) bool {
-	if target == nil {
-		return false
-	}
-
-	val := reflect.ValueOf(target)
-	typ := val.Type()
-
-	if typ.Kind() != reflect.Ptr || val.IsNil() {
-		return false
-	}
-
-	if e := typ.Elem(); e.Kind() != reflect.Interface && !typ.Implements(errorType) {
-		return false
-	}
-
-	targetType := typ.Elem()
-	for !isErrNil(err) {
-		if reflect.TypeOf(err).AssignableTo(targetType) {
-			val.Elem().Set(reflect.ValueOf(err))
-			return true
-		}
-		if x, ok := err.(interface{ As(interface{}) bool }); ok && x.As(target) {
-			return true
-		}
-		wrap, ok := err.(interface{ Unwrap() error })
+func Code(err error) string {
+	for err != nil {
+		u, ok := err.(interface {
+			Code() string
+		})
 		if ok {
-			err = wrap.Unwrap()
+			return u.Code()
 		}
+		err = errors.Unwrap(err)
 	}
-	return false
-}
-
-// Cause returns the underlying cause of the error, if possible.
-func Cause(err error) error {
-	for !isErrNil(err) {
-		cause, ok := err.(interface{ Cause() error })
-		if !ok {
-			break
-		}
-		err = cause.Cause()
-	}
-	return err
+	return ""
 }

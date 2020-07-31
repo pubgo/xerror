@@ -86,7 +86,6 @@ func trans(err error) *xerror {
 	switch err := err.(type) {
 	case *xerrorBase:
 		return &xerror{
-			Code1:  err.Code,
 			Msg:    err.Msg,
 			Caller: err.Caller,
 		}

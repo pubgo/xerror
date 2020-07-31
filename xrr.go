@@ -3,45 +3,14 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_core"
 	"io"
 	"strings"
 )
 
-type xerrorBase struct {
-	Code   string `json:"code,omitempty"`
-	Msg    string `json:"msg,omitempty"`
-	Caller string `json:"caller,omitempty"`
-}
-
-func (t *xerrorBase) Error() string {
-	return t.Code
-}
-
-func (t *xerrorBase) New(code string, ms ...string) error {
-	var msg string
-	if len(ms) > 0 {
-		msg = ms[0]
-	}
-
-	code = t.Code + "->" + code
-	xw := &xerrorBase{}
-	xw.Code = code
-	xw.Msg = msg
-	xw.Caller = callerWithDepth(xerror_core.CallDepth)
-
-	return xw
-}
-
 type xerror struct {
 	Cause1 error  `json:"next,omitempty"`
-	Code1  string `json:"code,omitempty"`
 	Msg    string `json:"msg,omitempty"`
 	Caller string `json:"caller,omitempty"`
-}
-
-func (t *xerror) Code() string {
-	return t.Code1
 }
 
 func (t *xerror) Unwrap() error {
@@ -78,9 +47,6 @@ func (t *xerror) p() string {
 		if xrr.Msg != "" {
 			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorGreen.P("Msg"), xrr.Msg))
 		}
-		if xrr.Code1 != "" {
-			buf.WriteString(fmt.Sprintf("  %s]: %s\n", colorGreen.P("Code"), xrr.Code1))
-		}
 		buf.WriteString(fmt.Sprintf("%s]: %s\n", colorYellow.P("Caller"), xrr.Caller))
 		xrr = trans(xrr.Cause1)
 	}
@@ -95,30 +61,11 @@ func (t *xerror) Is(err error) bool {
 
 	switch err := err.(type) {
 	case *xerrorBase:
-		return err == t.Cause1 || err.Code == t.Code1
+		return err == t.Cause1
 	case *xerror:
-		return err == t || err.Cause1 == t.Cause1 || err.Code1 == t.Code1
+		return err == t || err.Cause1 == t.Cause1
 	case error:
 		return t.Cause1 == err
-	default:
-		return false
-	}
-}
-
-func (t *xerror) As(err interface{}) bool {
-	if t == nil || t.Cause1 == nil || err == nil {
-		return false
-	}
-
-	switch e := err.(type) {
-	case *xerrorBase:
-		return strings.HasPrefix(t.Code1, e.Code)
-	case *xerror:
-		return strings.HasPrefix(t.Code1, e.Code1)
-	case error:
-		return strings.HasPrefix(t.Code1, e.Error())
-	case string:
-		return strings.HasPrefix(t.Code1, e)
 	default:
 		return false
 	}
