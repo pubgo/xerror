@@ -1,4 +1,8 @@
 package xerror_core
 
-var IsCaller = true
+var IsCaller bool
 var CallDepth = 3
+
+func init() {
+	IsCaller = true
+}

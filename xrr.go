@@ -85,9 +85,14 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 	}
 }
 
-func (t *xerror) Stack() string {
+func (t *xerror) Stack(indent ...bool) string {
 	if t == nil || t.Cause1 == nil || t.Cause1 == ErrDone {
 		return ""
+	}
+
+	if len(indent) > 0 {
+		dt, _ := json.MarshalIndent(t, "", "\t")
+		return string(dt)
 	}
 	dt, _ := json.Marshal(t)
 	return string(dt)

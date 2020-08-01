@@ -3,7 +3,6 @@ package xerror
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_core"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -31,7 +30,7 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 
 	err2 := &xerror{}
 	err2.Msg = msg
-	err2.Caller = callerWithDepth(xerror_core.CallDepth + 1)
+	err2.Caller = callerWithDepth(callDepth() + 1)
 	err2.Cause1 = err
 	return err2
 }
@@ -41,11 +40,11 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func callerWithDepth(callDepths ...int) string {
-	if !xerror_core.IsCaller {
+	if !isCaller() {
 		return ""
 	}
 
-	var cd = xerror_core.CallDepth
+	var cd = callDepth()
 	if len(callDepths) > 0 {
 		cd = callDepths[0]
 	}

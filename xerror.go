@@ -3,7 +3,6 @@ package xerror
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_core"
 	"net/http"
 	"os"
 	"reflect"
@@ -12,7 +11,7 @@ import (
 
 type XErr interface {
 	error
-	Stack() string
+	Stack(indent ...bool) string
 }
 
 func New(code string, ms ...string) *xerrorBase {
@@ -24,7 +23,7 @@ func New(code string, ms ...string) *xerrorBase {
 	xw := &xerrorBase{}
 	xw.Code1 = code
 	xw.Msg = msg
-	xw.Caller = callerWithDepth(xerror_core.CallDepth)
+	xw.Caller = callerWithDepth(callDepth())
 
 	return xw
 }
@@ -54,7 +53,7 @@ func Resp(f func(err XErr)) {
 		f(err.(XErr))
 		return
 	}
-	f(&xerror{Cause1: err, Caller: callerWithDepth(xerror_core.CallDepth + 1)})
+	f(&xerror{Cause1: err, Caller: callerWithDepth(callDepth() + 1)})
 }
 
 func RespExit() {

@@ -1,7 +1,6 @@
 package xerror
 
 import (
-	"github.com/pubgo/xerror/xerror_core"
 	"strings"
 )
 
@@ -12,10 +11,6 @@ type xerrorBase struct {
 }
 
 func (t *xerrorBase) Error() string {
-	return t.Code1
-}
-
-func (t *xerrorBase) Code() string {
 	return t.Code1
 }
 
@@ -46,7 +41,7 @@ func (t *xerrorBase) New(code string, ms ...string) error {
 	xw := &xerrorBase{}
 	xw.Code1 = code
 	xw.Msg = msg
-	xw.Caller = callerWithDepth(xerror_core.CallDepth)
+	xw.Caller = callerWithDepth(callDepth())
 
 	return xw
 }
