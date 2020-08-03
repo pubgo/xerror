@@ -14,8 +14,9 @@ go tool pprof -http=":8081" memprofile.out
 goos: darwin
 goarch: amd64
 pkg: github.com/pubgo/xerror
-BenchmarkPanic-8         3887112               311 ns/op              64 B/op          1 allocs/op
-BenchmarkNoPanic-8      188605891             6.46 ns/op             0 B/op            0 allocs/op
+BenchmarkPanic-8                	 1353934	       883 ns/op	     128 B/op	       2 allocs/op
+BenchmarkPanicWithOutCaller-8   	 3861938	       309 ns/op	      48 B/op	       1 allocs/op
+BenchmarkNoPanic-8              	201641330	         5.87 ns/op	       0 B/op	       0 allocs/op
 PASS
 ok      github.com/pubgo/xerror 4.363s
 ```

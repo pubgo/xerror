@@ -42,7 +42,7 @@ func TestAs(t *testing.T) {
 
 func TestExit(t *testing.T) {
 	xerror_core.PrintStack = false
-	xerror.Exit(a2(1, 2, 4, 5))
+	//xerror.Exit(a2(1, 2, 4, 5))
 }
 
 func TestTry(t *testing.T) {
@@ -52,6 +52,17 @@ func TestTry(t *testing.T) {
 }
 
 func BenchmarkPanic(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = func() (err error) {
+			defer xerror.RespErr(&err)
+			xerror.PanicF(xerror_http.ErrBadRequest, "测试Panic")
+			return
+		}()
+	}
+}
+
+func BenchmarkPanicWithoutCaller(b *testing.B) {
+	xerror_core.IsCaller = false
 	for i := 0; i < b.N; i++ {
 		_ = func() (err error) {
 			defer xerror.RespErr(&err)
