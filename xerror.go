@@ -3,10 +3,10 @@ package xerror
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/xerror/internal/wrapper"
 	"net/http"
 	"os"
 	"reflect"
-	"runtime/debug"
 )
 
 type XErr interface {
@@ -23,7 +23,7 @@ func New(code string, ms ...string) *xerrorBase {
 	xw := &xerrorBase{}
 	xw.Code1 = code
 	xw.Msg = msg
-	xw.Caller = callerWithDepth(callDepth())
+	xw.Caller = callerWithDepth(wrapper.CallDepth())
 
 	return xw
 }
@@ -53,7 +53,7 @@ func Resp(f func(err XErr)) {
 		f(err.(XErr))
 		return
 	}
-	f(&xerror{Cause1: err, Caller: callerWithDepth(callDepth() + 1)})
+	f(&xerror{Cause1: err, Caller: callerWithDepth(wrapper.CallDepth() + 1)})
 }
 
 func RespExit() {
@@ -64,7 +64,7 @@ func RespExit() {
 	}
 
 	fmt.Println(handle(err, "").p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
@@ -147,7 +147,7 @@ func ExitErr(_ interface{}, err error) {
 	}
 
 	fmt.Println(handle(err, "").p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
@@ -158,7 +158,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 	}
 
 	fmt.Println(handle(err, msg, args...).p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
@@ -168,7 +168,7 @@ func Exit(err error) {
 	}
 
 	fmt.Println(handle(err, "").p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
@@ -184,8 +184,6 @@ func Code(err error) string {
 	}
 	return ""
 }
-
-var errorType = reflect.TypeOf((*error)(nil)).Elem()
 
 func FamilyAs(err error, target interface{}) bool {
 	if target == nil {

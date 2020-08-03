@@ -3,6 +3,7 @@ package xerror_test
 import (
 	"fmt"
 	"github.com/pubgo/xerror"
+	"github.com/pubgo/xerror/xerror_core"
 	"github.com/pubgo/xerror/xerror_http"
 	"log"
 	"testing"
@@ -26,7 +27,7 @@ func a2(a ...interface{}) (err error) {
 	return
 }
 
-func TestName(t *testing.T) {
+func TestStack(t *testing.T) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		fmt.Println(err.Stack(true))
 	})
@@ -34,12 +35,13 @@ func TestName(t *testing.T) {
 }
 
 func TestAs(t *testing.T) {
-	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrHttp)==true)
-	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrBadRequest)==true)
-	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrNotFound)==false)
+	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrHttp) == true)
+	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrBadRequest) == true)
+	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrNotFound) == false)
 }
 
 func TestExit(t *testing.T) {
+	xerror_core.PrintStack = false
 	xerror.Exit(a2(1, 2, 4, 5))
 }
 

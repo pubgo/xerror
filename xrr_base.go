@@ -1,6 +1,7 @@
 package xerror
 
 import (
+	"github.com/pubgo/xerror/internal/wrapper"
 	"strings"
 )
 
@@ -51,7 +52,7 @@ func (t *xerrorBase) New(code string, ms ...string) error {
 	xw := &xerrorBase{}
 	xw.Code1 = code
 	xw.Msg = msg
-	xw.Caller = callerWithDepth(callDepth())
+	xw.Caller = callerWithDepth(wrapper.CallDepth())
 
 	return xw
 }
