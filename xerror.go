@@ -184,3 +184,23 @@ func Code(err error) string {
 	}
 	return ""
 }
+
+var errorType = reflect.TypeOf((*error)(nil)).Elem()
+
+func FamilyAs(err error, target interface{}) bool {
+	if target == nil {
+		panic("errors: target cannot be nil")
+	}
+	val := reflect.ValueOf(target)
+	typ := val.Type()
+	if typ.Kind() != reflect.Ptr || val.IsNil() {
+		panic("errors: target must be a non-nil pointer")
+	}
+	for err != nil {
+		if x, ok := err.(interface{ FamilyAs(interface{}) bool }); ok && x.FamilyAs(target) {
+			return true
+		}
+		err = errors.Unwrap(err)
+	}
+	return false
+}

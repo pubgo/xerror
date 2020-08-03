@@ -3,13 +3,20 @@ package xerror_test
 import (
 	"fmt"
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xerror/errs"
+	"github.com/pubgo/xerror/xerror_http"
+	"log"
 	"testing"
 )
 
+func check(b bool) {
+	if !b {
+		log.Fatalln("")
+	}
+}
+
 func a1(a ...interface{}) (err error) {
 	defer xerror.RespErr(&err)
-	xerror.PanicF(errs.ErrBadRequest, "test %+v", a)
+	xerror.PanicF(xerror_http.ErrBadRequest, "test %+v", a)
 	return
 }
 
@@ -26,6 +33,12 @@ func TestName(t *testing.T) {
 	xerror.Panic(a2(1, 2, 4, 5))
 }
 
+func TestAs(t *testing.T) {
+	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrHttp)==true)
+	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrBadRequest)==true)
+	check(xerror.FamilyAs(a2(1, 2, 4, 5), xerror_http.ErrNotFound)==false)
+}
+
 func TestExit(t *testing.T) {
 	xerror.Exit(a2(1, 2, 4, 5))
 }
@@ -40,7 +53,7 @@ func BenchmarkPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = func() (err error) {
 			defer xerror.RespErr(&err)
-			xerror.PanicF(errs.ErrBadRequest, "测试Panic")
+			xerror.PanicF(xerror_http.ErrBadRequest, "测试Panic")
 			return
 		}()
 	}

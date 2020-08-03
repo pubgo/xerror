@@ -20,15 +20,25 @@ func (t *xerrorBase) As(err interface{}) bool {
 	}
 
 	switch e := err.(type) {
+	case **xerrorBase:
+		return strings.HasPrefix(t.Code1, (*e).Code1)
 	case *xerrorBase:
 		return strings.HasPrefix(t.Code1, e.Code1)
+	case *error:
+		return strings.HasPrefix(t.Code1, (*e).Error())
 	case error:
 		return strings.HasPrefix(t.Code1, e.Error())
+	case *string:
+		return strings.HasPrefix(t.Code1, *e)
 	case string:
 		return strings.HasPrefix(t.Code1, e)
 	default:
 		return false
 	}
+}
+
+func (t *xerrorBase) FamilyAs(err interface{}) bool {
+	return t.As(err)
 }
 
 func (t *xerrorBase) New(code string, ms ...string) error {
