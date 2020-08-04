@@ -1,8 +1,10 @@
 package xerror
 
 import (
-	"github.com/pubgo/xerror/internal/wrapper"
 	"strings"
+
+	"github.com/pubgo/xerror/internal/wrapper"
+	"github.com/pubgo/xerror/xerror_core"
 )
 
 type xerrorBase struct {
@@ -48,7 +50,7 @@ func (t *xerrorBase) New(code string, ms ...string) error {
 		msg = ms[0]
 	}
 
-	code = t.Code1 + "->" + code
+	code = t.Code1 + xerror_core.Delimiter + code
 	xw := &xerrorBase{}
 	xw.Code1 = code
 	xw.Msg = msg

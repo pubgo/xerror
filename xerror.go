@@ -3,15 +3,17 @@ package xerror
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/xerror/internal/wrapper"
 	"net/http"
 	"os"
 	"reflect"
+
+	"github.com/pubgo/xerror/internal/wrapper"
 )
 
 type XErr interface {
 	error
 	Stack(indent ...bool) string
+	Println() string
 }
 
 func New(code string, ms ...string) *xerrorBase {

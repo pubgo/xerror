@@ -2,11 +2,12 @@ package xerror_test
 
 import (
 	"fmt"
+	"log"
+	"testing"
+
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/xerror_core"
 	"github.com/pubgo/xerror/xerror_http"
-	"log"
-	"testing"
 )
 
 func check(b bool) {

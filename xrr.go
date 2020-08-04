@@ -14,11 +14,7 @@ type xerror struct {
 }
 
 func (t *xerror) Unwrap() error {
-	if t == nil {
-		return nil
-	}
-
-	return t.Cause1
+	return t.Cause()
 }
 
 func (t *xerror) Cause() error {
@@ -75,11 +71,16 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		if s.Flag('+') {
-			fmt.Fprintf(s, "%+v\n", t.Cause())
-			io.WriteString(s, t.Msg)
+			io.WriteString(s, fmt.Sprintf("%+v", t))
 			return
 		}
-		fallthrough
+
+		if s.Flag('#') {
+			io.WriteString(s, fmt.Sprintf("%#v", t))
+			return
+		}
+
+		io.WriteString(s, t.Stack())
 	case 's', 'q':
 		io.WriteString(s, t.Error())
 	}
@@ -91,10 +92,16 @@ func (t *xerror) Stack(indent ...bool) string {
 	}
 
 	if len(indent) > 0 {
-		dt, _ := json.MarshalIndent(t, "", "\t")
+		dt, err := json.MarshalIndent(t, "", "\t")
+		if err != nil {
+			log.Fatalln(err)
+		}
 		return string(dt)
 	}
-	dt, _ := json.Marshal(t)
+	dt, err := json.Marshal(t)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	return string(dt)
 }
 
@@ -104,4 +111,12 @@ func (t *xerror) Error() string {
 		return ""
 	}
 	return t.Cause1.Error()
+}
+
+func (t *xerror) String() string {
+	return t.Stack()
+}
+
+func (t *xerror) Println() string {
+	return t.p()
 }

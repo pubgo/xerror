@@ -3,11 +3,11 @@ package xerror
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/xerror/internal/wrapper"
-	"log"
 	"reflect"
 	"runtime"
 	"strconv"
+
+	"github.com/pubgo/xerror/internal/wrapper"
 )
 
 func handleErr(err *error, _err interface{}) {
