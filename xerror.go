@@ -1,23 +1,19 @@
 package xerror
 
 import (
+	"errors"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_core"
 	"net/http"
 	"os"
 	"reflect"
-	"runtime/debug"
+
+	"github.com/pubgo/xerror/internal/wrapper"
 )
 
 type XErr interface {
 	error
-	As(err interface{}) bool
-	Is(err error) bool
-	Unwrap() error
-	Cause() error
-	Code() string
-	Format(s fmt.State, verb rune)
-	Stack() string
+	Stack(indent ...bool) string
+	Println() string
 }
 
 func New(code string, ms ...string) *xerrorBase {
@@ -27,24 +23,46 @@ func New(code string, ms ...string) *xerrorBase {
 	}
 
 	xw := &xerrorBase{}
-	xw.Code = code
+	xw.Code1 = code
 	xw.Msg = msg
-	xw.Caller = callerWithDepth(xerror_core.CallDepth)
+	xw.Caller = callerWithDepth(wrapper.CallDepth())
 
 	return xw
 }
 
 func Try(fn func()) (err error) {
-	defer Resp(func(_err XErr) {
-		err = handle(_err, "")
-		err.(*xerror).Caller = callerWithFunc(reflect.ValueOf(fn))
-	})
+	defer func() {
+		if _err := recover(); _err != nil {
+			switch err1 := _err.(type) {
+			case error:
+				err = err1
+			default:
+				err = fmt.Errorf("%+v", err1)
+			}
+
+			err2 := &xerror{}
+			err2.Caller = callerWithFunc(reflect.ValueOf(fn))
+			err2.Cause1 = New(err.Error())
+			err = err2
+		}
+	}()
 	fn()
 	return
 }
 
 func RespErr(err *error) {
 	handleErr(err, recover())
+}
+
+func RespDebug() {
+	var err error
+	handleErr(&err, recover())
+	if isErrNil(err) {
+		return
+	}
+
+	fmt.Println(handle(err, "").p())
+	wrapper.PrintStack()
 }
 
 // Resp
@@ -59,7 +77,7 @@ func Resp(f func(err XErr)) {
 		f(err.(XErr))
 		return
 	}
-	f(&xerror{Cause1: err, Caller: callerWithDepth(xerror_core.CallDepth + 1)})
+	f(&xerror{Cause1: err, Caller: callerWithDepth(wrapper.CallDepth() + 1)})
 }
 
 func RespExit() {
@@ -70,7 +88,7 @@ func RespExit() {
 	}
 
 	fmt.Println(handle(err, "").p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
@@ -153,7 +171,7 @@ func ExitErr(_ interface{}, err error) {
 	}
 
 	fmt.Println(handle(err, "").p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
@@ -164,7 +182,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 	}
 
 	fmt.Println(handle(err, msg, args...).p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
@@ -174,89 +192,25 @@ func Exit(err error) {
 	}
 
 	fmt.Println(handle(err, "").p())
-	debug.PrintStack()
+	wrapper.PrintStack()
 	os.Exit(1)
 }
 
-func Unwrap(err error) error {
-	for !isErrNil(err) {
-		wrap, ok := err.(interface{ Unwrap() error })
-		if !ok {
-			break
-		}
-		err = wrap.Unwrap()
-	}
-	return err
-}
-
-func Is(err, target error) bool {
-	if isErrNil(target) {
-		return err == target
-	}
-
-	isComparable := reflect.TypeOf(target).Comparable()
-	for !isErrNil(err) {
-		if isComparable && err == target {
-			return true
-		}
-		if x, ok := err.(interface{ Is(error) bool }); ok && x.Is(target) {
-			return true
-		}
-
-		if wrap, ok := err.(interface{ Unwrap() error }); !ok {
-			return false
-		} else {
-			err = wrap.Unwrap()
-		}
-	}
-	return false
-}
-
-var (
-	errorType = reflect.TypeOf((*error)(nil)).Elem()
-)
-
-func As(err error, target interface{}) bool {
+// FamilyAs Check if *err belongs to *target's family
+func FamilyAs(err error, target interface{}) bool {
 	if target == nil {
-		return false
+		panic("errors: target cannot be nil")
 	}
-
 	val := reflect.ValueOf(target)
 	typ := val.Type()
-
 	if typ.Kind() != reflect.Ptr || val.IsNil() {
-		return false
+		panic("errors: target must be a non-nil pointer")
 	}
-
-	if e := typ.Elem(); e.Kind() != reflect.Interface && !typ.Implements(errorType) {
-		return false
-	}
-
-	targetType := typ.Elem()
-	for !isErrNil(err) {
-		if reflect.TypeOf(err).AssignableTo(targetType) {
-			val.Elem().Set(reflect.ValueOf(err))
+	for err != nil {
+		if x, ok := err.(interface{ FamilyAs(interface{}) bool }); ok && x.FamilyAs(target) {
 			return true
 		}
-		if x, ok := err.(interface{ As(interface{}) bool }); ok && x.As(target) {
-			return true
-		}
-		wrap, ok := err.(interface{ Unwrap() error })
-		if ok {
-			err = wrap.Unwrap()
-		}
+		err = errors.Unwrap(err)
 	}
 	return false
-}
-
-// Cause returns the underlying cause of the error, if possible.
-func Cause(err error) error {
-	for !isErrNil(err) {
-		cause, ok := err.(interface{ Cause() error })
-		if !ok {
-			break
-		}
-		err = cause.Cause()
-	}
-	return err
 }

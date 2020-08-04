@@ -3,10 +3,11 @@ package xerror
 import (
 	"errors"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_core"
 	"reflect"
 	"runtime"
 	"strconv"
+
+	"github.com/pubgo/xerror/internal/wrapper"
 )
 
 func handleErr(err *error, _err interface{}) {
@@ -20,7 +21,7 @@ func handleErr(err *error, _err interface{}) {
 	case string:
 		*err = errors.New(_err)
 	default:
-		*err = WrapF(ErrUnknownType, "%+v", _err)
+		*err = New("unknown type", fmt.Sprintf("%+v", _err))
 	}
 }
 
@@ -31,7 +32,7 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 
 	err2 := &xerror{}
 	err2.Msg = msg
-	err2.Caller = callerWithDepth(xerror_core.CallDepth + 1)
+	err2.Caller = callerWithDepth(wrapper.CallDepth() + 1)
 	err2.Cause1 = err
 	return err2
 }
@@ -41,11 +42,11 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func callerWithDepth(callDepths ...int) string {
-	if !xerror_core.IsCaller {
+	if !wrapper.IsCaller() {
 		return ""
 	}
 
-	var cd = xerror_core.CallDepth
+	var cd = wrapper.CallDepth()
 	if len(callDepths) > 0 {
 		cd = callDepths[0]
 	}
@@ -67,7 +68,7 @@ func callerWithDepth(callDepths ...int) string {
 
 func callerWithFunc(fn reflect.Value) string {
 	if !fn.IsValid() || fn.IsNil() || fn.Kind() != reflect.Func {
-		panic(ErrNotFuncType)
+		log.Fatalln("not func type")
 	}
 	var _fn = fn.Pointer()
 	var file, line = runtime.FuncForPC(_fn).FileLine(_fn)
@@ -86,7 +87,6 @@ func trans(err error) *xerror {
 	switch err := err.(type) {
 	case *xerrorBase:
 		return &xerror{
-			Code1:  err.Code,
 			Msg:    err.Msg,
 			Caller: err.Caller,
 		}

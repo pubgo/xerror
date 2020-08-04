@@ -3,53 +3,18 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_core"
 	"io"
 	"strings"
 )
 
-type xerrorBase struct {
-	Code   string `json:"code,omitempty"`
-	Msg    string `json:"msg,omitempty"`
-	Caller string `json:"caller,omitempty"`
-}
-
-func (t *xerrorBase) Error() string {
-	return t.Code
-}
-
-func (t *xerrorBase) New(code string, ms ...string) error {
-	var msg string
-	if len(ms) > 0 {
-		msg = ms[0]
-	}
-
-	code = t.Code + "->" + code
-	xw := &xerrorBase{}
-	xw.Code = code
-	xw.Msg = msg
-	xw.Caller = callerWithDepth(xerror_core.CallDepth)
-
-	return xw
-}
-
 type xerror struct {
-	Cause1 error  `json:"next,omitempty"`
-	Code1  string `json:"code,omitempty"`
+	Cause1 error  `json:"cause,omitempty"`
 	Msg    string `json:"msg,omitempty"`
 	Caller string `json:"caller,omitempty"`
-}
-
-func (t *xerror) Code() string {
-	return t.Code1
 }
 
 func (t *xerror) Unwrap() error {
-	if t == nil {
-		return nil
-	}
-
-	return t.Cause1
+	return t.Cause()
 }
 
 func (t *xerror) Cause() error {
@@ -78,9 +43,6 @@ func (t *xerror) p() string {
 		if xrr.Msg != "" {
 			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorGreen.P("Msg"), xrr.Msg))
 		}
-		if xrr.Code1 != "" {
-			buf.WriteString(fmt.Sprintf("  %s]: %s\n", colorGreen.P("Code"), xrr.Code1))
-		}
 		buf.WriteString(fmt.Sprintf("%s]: %s\n", colorYellow.P("Caller"), xrr.Caller))
 		xrr = trans(xrr.Cause1)
 	}
@@ -95,30 +57,11 @@ func (t *xerror) Is(err error) bool {
 
 	switch err := err.(type) {
 	case *xerrorBase:
-		return err == t.Cause1 || err.Code == t.Code1
+		return err == t.Cause1
 	case *xerror:
-		return err == t || err.Cause1 == t.Cause1 || err.Code1 == t.Code1
+		return err == t || err.Cause1 == t.Cause1
 	case error:
 		return t.Cause1 == err
-	default:
-		return false
-	}
-}
-
-func (t *xerror) As(err interface{}) bool {
-	if t == nil || t.Cause1 == nil || err == nil {
-		return false
-	}
-
-	switch e := err.(type) {
-	case *xerrorBase:
-		return strings.HasPrefix(t.Code1, e.Code)
-	case *xerror:
-		return strings.HasPrefix(t.Code1, e.Code1)
-	case error:
-		return strings.HasPrefix(t.Code1, e.Error())
-	case string:
-		return strings.HasPrefix(t.Code1, e)
 	default:
 		return false
 	}
@@ -128,21 +71,37 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		if s.Flag('+') {
-			fmt.Fprintf(s, "%+v\n", t.Cause())
-			io.WriteString(s, t.Msg)
+			io.WriteString(s, fmt.Sprintf("%+v", t))
 			return
 		}
-		fallthrough
+
+		if s.Flag('#') {
+			io.WriteString(s, fmt.Sprintf("%#v", t))
+			return
+		}
+
+		io.WriteString(s, t.Stack())
 	case 's', 'q':
 		io.WriteString(s, t.Error())
 	}
 }
 
-func (t *xerror) Stack() string {
+func (t *xerror) Stack(indent ...bool) string {
 	if t == nil || t.Cause1 == nil || t.Cause1 == ErrDone {
 		return ""
 	}
-	dt, _ := json.Marshal(t)
+
+	if len(indent) > 0 {
+		dt, err := json.MarshalIndent(t, "", "\t")
+		if err != nil {
+			log.Fatalln(err)
+		}
+		return string(dt)
+	}
+	dt, err := json.Marshal(t)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	return string(dt)
 }
 
@@ -152,4 +111,12 @@ func (t *xerror) Error() string {
 		return ""
 	}
 	return t.Cause1.Error()
+}
+
+func (t *xerror) String() string {
+	return t.Stack()
+}
+
+func (t *xerror) Println() string {
+	return t.p()
 }
