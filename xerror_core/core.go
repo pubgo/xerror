@@ -1,6 +1,6 @@
 package xerror_core
 
-const Delimiter = "->"
+const Delimiter = "||"
 
 var IsCaller bool
 var CallDepth = 3

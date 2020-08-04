@@ -31,16 +31,38 @@ func New(code string, ms ...string) *xerrorBase {
 }
 
 func Try(fn func()) (err error) {
-	defer Resp(func(_err XErr) {
-		err = handle(_err, "")
-		err.(*xerror).Caller = callerWithFunc(reflect.ValueOf(fn))
-	})
+	defer func() {
+		if _err := recover(); _err != nil {
+			switch err1 := _err.(type) {
+			case error:
+				err = err1
+			default:
+				err = fmt.Errorf("%+v", err1)
+			}
+
+			err2 := &xerror{}
+			err2.Caller = callerWithFunc(reflect.ValueOf(fn))
+			err2.Cause1 = New(err.Error())
+			err = err2
+		}
+	}()
 	fn()
 	return
 }
 
 func RespErr(err *error) {
 	handleErr(err, recover())
+}
+
+func RespDebug() {
+	var err error
+	handleErr(&err, recover())
+	if isErrNil(err) {
+		return
+	}
+
+	fmt.Println(handle(err, "").p())
+	wrapper.PrintStack()
 }
 
 // Resp
@@ -174,19 +196,7 @@ func Exit(err error) {
 	os.Exit(1)
 }
 
-func Code(err error) string {
-	for err != nil {
-		u, ok := err.(interface {
-			Code() string
-		})
-		if ok {
-			return u.Code()
-		}
-		err = errors.Unwrap(err)
-	}
-	return ""
-}
-
+// FamilyAs Check if *err belongs to *target's family
 func FamilyAs(err error, target interface{}) bool {
 	if target == nil {
 		panic("errors: target cannot be nil")

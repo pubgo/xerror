@@ -8,7 +8,7 @@ import (
 )
 
 type xerror struct {
-	Cause1 error  `json:"next,omitempty"`
+	Cause1 error  `json:"cause,omitempty"`
 	Msg    string `json:"msg,omitempty"`
 	Caller string `json:"caller,omitempty"`
 }
