@@ -3,11 +3,10 @@ package xerror
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/xerror/internal/wrapper"
 	"reflect"
 	"runtime"
 	"strconv"
-
-	"github.com/pubgo/xerror/internal/wrapper"
 )
 
 func handleErr(err *error, _err interface{}) {
@@ -33,7 +32,17 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 	err2 := &xerror{}
 	err2.Msg = msg
 	err2.Caller = callerWithDepth(wrapper.CallDepth() + 1)
-	err2.Cause1 = err
+	switch e := err.(type) {
+	case *xerrorBase:
+		err2.Cause1 = e
+	case *xerror:
+		err2.Cause1 = e
+	case error:
+		err2.Cause1 = New(unwrap(e).Error(), fmt.Sprintf("%+v", e))
+	default:
+		err2.Cause1 = New("unknown type error", fmt.Sprintf("%+v", e))
+	}
+
 	return err2
 }
 
@@ -94,5 +103,17 @@ func trans(err error) *xerror {
 		return err
 	default:
 		return nil
+	}
+}
+
+func unwrap(err error) error {
+	for {
+		u, ok := err.(interface {
+			Unwrap() error
+		})
+		if !ok {
+			return err
+		}
+		err = u.Unwrap()
 	}
 }
