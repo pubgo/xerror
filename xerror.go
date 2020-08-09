@@ -3,6 +3,7 @@ package xerror
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/xerror/xerror_util"
 	"net/http"
 	"os"
 	"reflect"
@@ -23,9 +24,9 @@ func New(code string, ms ...string) *xerrorBase {
 	}
 
 	xw := &xerrorBase{}
-	xw.Code1 = code
+	xw.Code = code
 	xw.Msg = msg
-	xw.Caller = callerWithDepth(wrapper.CallDepth())
+	xw.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
 
 	return xw
 }
@@ -33,16 +34,15 @@ func New(code string, ms ...string) *xerrorBase {
 func Try(fn func()) (err error) {
 	defer func() {
 		if _err := recover(); _err != nil {
+			err2 := &xerror{}
+			err2.Caller = xerror_util.CallerWithFunc(fn)
+
 			switch err1 := _err.(type) {
 			case error:
-				err = err1
+				err2.Cause1 = New(unwrap(err1).Error(), fmt.Sprintf("%+v", err1))
 			default:
-				err = fmt.Errorf("%+v", err1)
+				err2.Cause1 = New(ErrUnknownType.Error(), fmt.Sprintf("%+v", err1))
 			}
-
-			err2 := &xerror{}
-			err2.Caller = callerWithFunc(reflect.ValueOf(fn))
-			err2.Cause1 = New(err.Error())
 			err = err2
 		}
 	}()
@@ -77,7 +77,7 @@ func Resp(f func(err XErr)) {
 		f(err.(XErr))
 		return
 	}
-	f(&xerror{Cause1: err, Caller: callerWithDepth(wrapper.CallDepth() + 1)})
+	f(&xerror{Cause1: err, Caller: xerror_util.CallerWithDepth(wrapper.CallDepth() + 1)})
 }
 
 func RespExit() {
@@ -96,7 +96,6 @@ func Panic(err error) {
 	if isErrNil(err) {
 		return
 	}
-
 	panic(handle(err, ""))
 }
 
@@ -111,7 +110,6 @@ func Wrap(err error) error {
 	if isErrNil(err) {
 		return nil
 	}
-
 	return handle(err, "")
 }
 
@@ -119,7 +117,6 @@ func WrapF(err error, msg string, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil
 	}
-
 	return handle(err, msg, args...)
 }
 
@@ -128,7 +125,6 @@ func PanicErr(d1 interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return d1
 	}
-
 	panic(handle(err, ""))
 }
 
@@ -136,7 +132,6 @@ func PanicBytes(d1 []byte, err error) []byte {
 	if isErrNil(err) {
 		return d1
 	}
-
 	panic(handle(err, ""))
 }
 
@@ -144,7 +139,6 @@ func PanicStr(d1 string, err error) string {
 	if isErrNil(err) {
 		return d1
 	}
-
 	panic(handle(err, ""))
 }
 
@@ -152,7 +146,6 @@ func PanicFile(d1 *os.File, err error) *os.File {
 	if isErrNil(err) {
 		return d1
 	}
-
 	panic(handle(err, ""))
 }
 
@@ -160,7 +153,6 @@ func PanicResponse(d1 *http.Response, err error) *http.Response {
 	if isErrNil(err) {
 		return d1
 	}
-
 	panic(handle(err, ""))
 }
 
@@ -169,7 +161,6 @@ func ExitErr(_ interface{}, err error) {
 	if isErrNil(err) {
 		return
 	}
-
 	fmt.Println(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
@@ -180,7 +171,6 @@ func ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
-
 	fmt.Println(handle(err, msg, args...).p())
 	wrapper.PrintStack()
 	os.Exit(1)
@@ -190,7 +180,6 @@ func Exit(err error) {
 	if isErrNil(err) {
 		return
 	}
-
 	fmt.Println(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)

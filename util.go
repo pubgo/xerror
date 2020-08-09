@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pubgo/xerror/internal/wrapper"
-	"reflect"
-	"runtime"
-	"strconv"
+	"github.com/pubgo/xerror/xerror_util"
 )
 
 func handleErr(err *error, _err interface{}) {
@@ -20,7 +18,7 @@ func handleErr(err *error, _err interface{}) {
 	case string:
 		*err = errors.New(_err)
 	default:
-		*err = New("unknown type", fmt.Sprintf("%+v", _err))
+		*err = WrapF(ErrUnknownType, fmt.Sprintf("%+v", _err))
 	}
 }
 
@@ -31,7 +29,7 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 
 	err2 := &xerror{}
 	err2.Msg = msg
-	err2.Caller = callerWithDepth(wrapper.CallDepth() + 1)
+	err2.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth() + 1)
 	switch e := err.(type) {
 	case *xerrorBase:
 		err2.Cause1 = e
@@ -40,48 +38,10 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 	case error:
 		err2.Cause1 = New(unwrap(e).Error(), fmt.Sprintf("%+v", e))
 	default:
-		err2.Cause1 = New("unknown type error", fmt.Sprintf("%+v", e))
+		err2.Cause1 = New(ErrUnknownType.Error(), fmt.Sprintf("%+v", e))
 	}
 
 	return err2
-}
-
-type frame uintptr
-
-func (f frame) pc() uintptr { return uintptr(f) - 1 }
-
-func callerWithDepth(callDepths ...int) string {
-	if !wrapper.IsCaller() {
-		return ""
-	}
-
-	var cd = wrapper.CallDepth()
-	if len(callDepths) > 0 {
-		cd = callDepths[0]
-	}
-
-	var pcs = make([]uintptr, 1)
-	if runtime.Callers(cd, pcs[:]) == 0 {
-		return ""
-	}
-
-	f := frame(pcs[0])
-	fn := runtime.FuncForPC(f.pc())
-	if fn == nil {
-		return "unknown type"
-	}
-
-	file, line := fn.FileLine(f.pc())
-	return file + ":" + strconv.Itoa(line)
-}
-
-func callerWithFunc(fn reflect.Value) string {
-	if !fn.IsValid() || fn.IsNil() || fn.Kind() != reflect.Func {
-		log.Fatalln("not func type")
-	}
-	var _fn = fn.Pointer()
-	var file, line = runtime.FuncForPC(_fn).FileLine(_fn)
-	return file + ":" + strconv.Itoa(line)
 }
 
 func isErrNil(err error) bool {
