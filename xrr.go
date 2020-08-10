@@ -3,7 +3,7 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	"github.com/pubgo/xerror/xerror_color"
 	"strings"
 )
 
@@ -38,12 +38,12 @@ func (t *xerror) p() string {
 	for xrr != nil {
 		buf.WriteString("========================================================================================================================\n")
 		if xrr.Cause1 != nil {
-			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorRed.P("Err"), xrr.Cause1))
+			buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1))
 		}
 		if xrr.Msg != "" {
-			buf.WriteString(fmt.Sprintf("   %s]: %s\n", colorGreen.P("Msg"), xrr.Msg))
+			buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorGreen.P("Msg"), xrr.Msg))
 		}
-		buf.WriteString(fmt.Sprintf("%s]: %s\n", colorYellow.P("Caller"), xrr.Caller))
+		buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.ColorYellow.P("Caller"), xrr.Caller))
 		xrr = trans(xrr.Cause1)
 	}
 	buf.WriteString("========================================================================================================================\n\n")
@@ -71,18 +71,17 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		if s.Flag('+') {
-			io.WriteString(s, fmt.Sprintf("%+v", t))
+			fmt.Fprintf(s, "%+v", t)
 			return
 		}
 
 		if s.Flag('#') {
-			io.WriteString(s, fmt.Sprintf("%#v", t))
+			fmt.Fprintf(s, "%#v", t)
 			return
 		}
-
-		io.WriteString(s, t.Stack())
+		fmt.Fprint(s, t.Stack())
 	case 's', 'q':
-		io.WriteString(s, t.Error())
+		fmt.Fprint(s, t.Error())
 	}
 }
 
