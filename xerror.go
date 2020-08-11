@@ -17,6 +17,10 @@ type XErr interface {
 	Println() string
 }
 
+func Fmt(format string, a ...interface{}) *xerrorBase {
+	return New(fmt.Sprintf(format, a...))
+}
+
 func New(code string, ms ...string) *xerrorBase {
 	var msg string
 	if len(ms) > 0 {
