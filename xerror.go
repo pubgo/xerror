@@ -18,7 +18,9 @@ type XErr interface {
 }
 
 func Fmt(format string, a ...interface{}) *xerrorBase {
-	return New(fmt.Sprintf(format, a...))
+	xrr := New(fmt.Sprintf(format, a...))
+	xrr.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
+	return xrr
 }
 
 func New(code string, ms ...string) *xerrorBase {
