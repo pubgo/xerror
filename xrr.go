@@ -74,15 +74,6 @@ func (t *xerror) Is(err error) bool {
 func (t *xerror) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		if s.Flag('+') {
-			fmt.Fprintf(s, "%+v", t)
-			return
-		}
-
-		if s.Flag('#') {
-			fmt.Fprintf(s, "%#v", t)
-			return
-		}
 		fmt.Fprint(s, t.Stack())
 	case 's', 'q':
 		fmt.Fprint(s, t.Error())
