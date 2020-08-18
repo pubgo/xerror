@@ -15,6 +15,7 @@ type XErr interface {
 	error
 	Stack(indent ...bool) string
 	Println() string
+	String() string
 }
 
 // Combine combine multiple errors
@@ -36,6 +37,11 @@ func Combine(errs ...error) error {
 		return nil
 	}
 	return &_errs
+}
+
+// Parse parse error to xerror
+func Parse(err error) XErr {
+	return handle(err, "")
 }
 
 func Fmt(format string, a ...interface{}) *xerrorBase {
