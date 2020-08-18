@@ -17,6 +17,27 @@ type XErr interface {
 	Println() string
 }
 
+// Combine combine multiple errors
+func Combine(errs ...error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+
+	var _errs xerrorCombine
+	for i := range errs {
+		if errs[i] == nil {
+			continue
+		}
+
+		_errs = append(_errs, handle(errs[i], ""))
+	}
+
+	if len(_errs) == 0 {
+		return nil
+	}
+	return &_errs
+}
+
 func Fmt(format string, a ...interface{}) *xerrorBase {
 	xrr := New(fmt.Sprintf(format, a...))
 	xrr.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())

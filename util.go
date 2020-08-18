@@ -35,6 +35,8 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 		err2.Cause1 = e
 	case *xerror:
 		err2.Cause1 = e
+	case *xerrorCombine:
+		err2.Cause1 = e
 	case error:
 		err2.Cause1 = New(unwrap(e).Error(), fmt.Sprintf("%+v", e))
 	default:
@@ -48,19 +50,21 @@ func isErrNil(err error) bool {
 	return err == nil || err == ErrDone
 }
 
-func trans(err error) *xerror {
+func trans(err error) []*xerror {
 	if err == nil {
 		return nil
 	}
 
 	switch err := err.(type) {
 	case *xerrorBase:
-		return &xerror{
+		return []*xerror{{
 			Msg:    err.Msg,
 			Caller: err.Caller,
-		}
+		}}
 	case *xerror:
-		return err
+		return []*xerror{err}
+	case *xerrorCombine:
+		return *err
 	default:
 		return nil
 	}

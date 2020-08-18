@@ -32,11 +32,18 @@ func panicWrap(a ...interface{}) (err error) {
 	return xerror.WrapF(panic2(a...), "panicWrap %+v", a)
 }
 
+func TestCombine(t *testing.T) {
+	defer xerror.Resp(func(err xerror.XErr) {
+		fmt.Println(err.Stack(true))
+	})
+	xerror.Panic(xerror.Combine(panicWrap(1, 2, 4, 5), panicWrap(1, 2, 4, 5)))
+}
+
 func TestStack(t *testing.T) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		fmt.Println(err.Stack(true))
 	})
-	xerror.Panic(panicWrap(1, 2, 4, 5))
+	xerror.Exit(panicWrap(1, 2, 4, 5))
 }
 
 func TestAs(t *testing.T) {
