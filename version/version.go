@@ -1,5 +1,4 @@
 package version
 
-var GoVersion = "go version go1.14.4 darwin/amd64"
-var BuildTime = "2020-08-11 21:50:25"
-var Version = "v0.2.8"
+const BuildTime = "2020-08-20 09:12:38"
+const Version = "v0.2.9"
