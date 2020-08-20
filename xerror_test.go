@@ -8,6 +8,7 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/xerror_core"
 	"github.com/pubgo/xerror/xerror_http"
+	"github.com/pubgo/xlog"
 )
 
 func check(b bool) {
@@ -32,11 +33,22 @@ func panicWrap(a ...interface{}) (err error) {
 	return xerror.WrapF(panic2(a...), "panicWrap %+v", a)
 }
 
+func TestCombine(t *testing.T) {
+	defer xerror.Resp(func(err xerror.XErr) {
+		fmt.Println(err.Stack(true))
+	})
+	xerror.Panic(xerror.Combine(panicWrap(1, 2, 4, 5), panicWrap(1, 2, 4, 5)))
+}
+
+func TestLog(t *testing.T) {
+	xlog.InfoF("gg \n%v", xerror.Parse(xerror.New("ddd", "dddnjnjnj")).Stack(true))
+}
+
 func TestStack(t *testing.T) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		fmt.Println(err.Stack(true))
 	})
-	xerror.Panic(panicWrap(1, 2, 4, 5))
+	xerror.Exit(panicWrap(1, 2, 4, 5))
 }
 
 func TestAs(t *testing.T) {

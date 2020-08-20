@@ -1,6 +1,4 @@
 package version
 
-var GoVersion = "go version go1.14.4 darwin/amd64"
-var CommitID = "858fbcfc"
-var BuildTime = "2020-08-10 15:21:10"
-var Version = "v0.2.6"
+const BuildTime = "2020-08-20 09:12:38"
+const Version = "v0.2.9"

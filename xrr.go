@@ -25,6 +25,21 @@ func (t *xerror) Cause() error {
 	return t.Cause1
 }
 
+func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
+	buf.WriteString("========================================================================================================================\n")
+	if xrr.Cause1 != nil {
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1))
+	}
+	if xrr.Msg != "" {
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorGreen.P("Msg"), xrr.Msg))
+	}
+	buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.ColorYellow.P("Caller"), xrr.Caller))
+	if errs := trans(xrr.Cause1); errs != nil {
+		for i := range errs {
+			t._p(buf, errs[i])
+		}
+	}
+}
 func (t *xerror) p() string {
 	if t == nil || t.Cause1 == nil {
 		return ""
@@ -34,18 +49,7 @@ func (t *xerror) p() string {
 	defer buf.Reset()
 
 	buf.WriteString("\n")
-	xrr := t
-	for xrr != nil {
-		buf.WriteString("========================================================================================================================\n")
-		if xrr.Cause1 != nil {
-			buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1))
-		}
-		if xrr.Msg != "" {
-			buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorGreen.P("Msg"), xrr.Msg))
-		}
-		buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.ColorYellow.P("Caller"), xrr.Caller))
-		xrr = trans(xrr.Cause1)
-	}
+	t._p(buf, t)
 	buf.WriteString("========================================================================================================================\n\n")
 	return buf.String()
 }
@@ -70,17 +74,17 @@ func (t *xerror) Is(err error) bool {
 func (t *xerror) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		if s.Flag('+') {
-			fmt.Fprintf(s, "%+v", t)
+		if s.Flag('+') || s.Flag('#') {
+			fmt.Fprint(s, t.Stack(true))
 			return
 		}
 
-		if s.Flag('#') {
-			fmt.Fprintf(s, "%#v", t)
-			return
-		}
 		fmt.Fprint(s, t.Stack())
-	case 's', 'q':
+	case 's':
+		fmt.Fprint(s, t.String())
+	case 'q':
+		fmt.Fprint(s, t.Error())
+	default:
 		fmt.Fprint(s, t.Error())
 	}
 }

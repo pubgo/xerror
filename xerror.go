@@ -15,6 +15,39 @@ type XErr interface {
 	error
 	Stack(indent ...bool) string
 	Println() string
+	String() string
+}
+
+// Combine combine multiple errors
+func Combine(errs ...error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+
+	var _errs xerrorCombine
+	for i := range errs {
+		if errs[i] == nil {
+			continue
+		}
+
+		_errs = append(_errs, handle(errs[i], ""))
+	}
+
+	if len(_errs) == 0 {
+		return nil
+	}
+	return &_errs
+}
+
+// Parse parse error to xerror
+func Parse(err error) XErr {
+	return handle(err, "")
+}
+
+func Fmt(format string, a ...interface{}) *xerrorBase {
+	xrr := New(fmt.Sprintf(format, a...))
+	xrr.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
+	return xrr
 }
 
 func New(code string, ms ...string) *xerrorBase {
@@ -157,13 +190,14 @@ func PanicResponse(d1 *http.Response, err error) *http.Response {
 }
 
 // ExitErr
-func ExitErr(_ interface{}, err error) {
+func ExitErr(dat interface{}, err error) interface{} {
 	if isErrNil(err) {
-		return
+		return dat
 	}
 	fmt.Println(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
+	return nil
 }
 
 // ExitF
