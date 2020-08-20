@@ -190,13 +190,14 @@ func PanicResponse(d1 *http.Response, err error) *http.Response {
 }
 
 // ExitErr
-func ExitErr(_ interface{}, err error) {
+func ExitErr(dat interface{}, err error) interface{} {
 	if isErrNil(err) {
-		return
+		return dat
 	}
 	fmt.Println(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
+	return nil
 }
 
 // ExitF
