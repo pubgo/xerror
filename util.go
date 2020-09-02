@@ -38,9 +38,9 @@ func handle(err error, msg string, args ...interface{}) *xerror {
 	case *xerrorCombine:
 		err2.Cause1 = e
 	case error:
-		err2.Cause1 = New(unwrap(e).Error(), fmt.Sprintf("%+v", e))
+		err2.Cause1 = &xerrorBase{Code: unwrap(e).Error(), Msg: fmt.Sprintf("%+v", e)}
 	default:
-		err2.Cause1 = New(ErrUnknownType.Error(), fmt.Sprintf("%+v", e))
+		err2.Cause1 = &xerrorBase{Code: ErrUnknownType.Error(), Msg: fmt.Sprintf("%+v", e)}
 	}
 
 	return err2
