@@ -81,7 +81,7 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 
 		fmt.Fprint(s, t.Stack())
 	case 's':
-		fmt.Fprint(s, t.String())
+		fmt.Fprint(s, t.Msg)
 	case 'q':
 		fmt.Fprint(s, t.Error())
 	default:
