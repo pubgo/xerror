@@ -1,8 +1,9 @@
 package wrapper
 
 import (
-	"github.com/pubgo/xerror/xerror_core"
 	"runtime/debug"
+
+	"github.com/pubgo/xerror/xerror_core"
 )
 
 func IsCaller() bool {

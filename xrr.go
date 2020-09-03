@@ -3,8 +3,9 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_color"
 	"strings"
+
+	"github.com/pubgo/xerror/xerror_color"
 )
 
 type xerror struct {

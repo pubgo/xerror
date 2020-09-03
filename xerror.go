@@ -3,12 +3,11 @@ package xerror
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/xerror/internal/wrapper"
 	"github.com/pubgo/xerror/xerror_util"
 	"net/http"
 	"os"
 	"reflect"
-
-	"github.com/pubgo/xerror/internal/wrapper"
 )
 
 type XErr interface {
@@ -29,14 +28,14 @@ func Combine(errs ...error) error {
 		if errs[i] == nil {
 			continue
 		}
-
 		_errs = append(_errs, handle(errs[i], ""))
 	}
 
 	if len(_errs) == 0 {
 		return nil
 	}
-	return &_errs
+
+	return _errs
 }
 
 // Parse parse error to xerror
@@ -85,6 +84,45 @@ func Try(fn func()) (err error) {
 
 func RespErr(err *error) {
 	handleErr(err, recover())
+}
+
+var goroutineErrHandle = func(err XErr) {
+	if isErrNil(err) {
+		return
+	}
+
+	fmt.Println(err.Println())
+}
+
+func init() {
+	go func() {
+		for {
+			select {
+			case err := <-goroutineErrs:
+				if goroutineErrHandle != nil {
+					goroutineErrHandle(err)
+				}
+			}
+		}
+	}()
+}
+
+func SetGoroutineErrHandle(fn func(err XErr)) {
+	if fn == nil {
+		log.Fatal("the parameters should not be nil")
+	}
+	goroutineErrHandle = fn
+}
+
+var goroutineErrs = make(chan *xerror, 1)
+
+func RespGoroutine() {
+	var err error
+	handleErr(&err, recover())
+	if isErrNil(err) {
+		return
+	}
+	goroutineErrs <- handle(err, "")
 }
 
 func RespDebug() {
