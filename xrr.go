@@ -28,9 +28,9 @@ func (t *xerror) Cause() error {
 func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	buf.WriteString("========================================================================================================================\n")
 	if xrr.Cause1 != nil {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1))
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1.Error()))
 	}
-	if xrr.Msg != "" {
+	if strings.TrimSpace(xrr.Msg) != "" {
 		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorGreen.P("Msg"), xrr.Msg))
 	}
 	buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.ColorYellow.P("Caller"), xrr.Caller))
