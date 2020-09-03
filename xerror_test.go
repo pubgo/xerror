@@ -70,9 +70,14 @@ func TestTry(t *testing.T) {
 }
 
 func TestRespGoroutine(t *testing.T) {
-	xerror.SetGoroutineErrHandle(func(err xerror.XErr) {
+	xerror.Exit(xerror.SetGoroutineErrHandler("test", func(err xerror.XErr) {
 		fmt.Println(err.Stack(true))
-	})
+	}))
+
+	go func() {
+		defer xerror.RespGoroutine("test")
+		xerror.Panic(panicWrap(1, 2, 4, 5))
+	}()
 
 	go func() {
 		defer xerror.RespGoroutine()

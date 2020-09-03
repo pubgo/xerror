@@ -40,13 +40,18 @@ func Combine(errs ...error) error {
 
 // Parse parse error to xerror
 func Parse(err error) XErr {
+	if isErrNil(err) {
+		return nil
+	}
+
 	return handle(err, "")
 }
 
 func Fmt(format string, a ...interface{}) *xerrorBase {
-	xrr := New(fmt.Sprintf(format, a...))
-	xrr.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
-	return xrr
+	xw := &xerrorBase{}
+	xw.Code = fmt.Sprintf(format, a...)
+	xw.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
+	return xw
 }
 
 func New(code string, ms ...string) *xerrorBase {
@@ -64,6 +69,10 @@ func New(code string, ms ...string) *xerrorBase {
 }
 
 func Try(fn func()) (err error) {
+	if fn == nil {
+		return New("the parameters fn should not be nil")
+	}
+
 	defer func() {
 		if _err := recover(); _err != nil {
 			err2 := &xerror{}
@@ -71,58 +80,20 @@ func Try(fn func()) (err error) {
 
 			switch err1 := _err.(type) {
 			case error:
-				err2.Cause1 = New(unwrap(err1).Error(), fmt.Sprintf("%+v", err1))
+				err2.Cause1 = &xerrorBase{Code: unwrap(err1).Error(), Msg: fmt.Sprintf("%+v", err1)}
 			default:
-				err2.Cause1 = New(ErrUnknownType.Error(), fmt.Sprintf("%+v", err1))
+				err2.Cause1 = &xerrorBase{Code: ErrUnknownType.Error(), Msg: fmt.Sprintf("%+v", err1)}
 			}
 			err = err2
 		}
 	}()
+
 	fn()
 	return
 }
 
 func RespErr(err *error) {
 	handleErr(err, recover())
-}
-
-var goroutineErrHandle = func(err XErr) {
-	if isErrNil(err) {
-		return
-	}
-
-	fmt.Println(err.Println())
-}
-
-func init() {
-	go func() {
-		for {
-			select {
-			case err := <-goroutineErrs:
-				if goroutineErrHandle != nil {
-					goroutineErrHandle(err)
-				}
-			}
-		}
-	}()
-}
-
-func SetGoroutineErrHandle(fn func(err XErr)) {
-	if fn == nil {
-		log.Fatal("the parameters should not be nil")
-	}
-	goroutineErrHandle = fn
-}
-
-var goroutineErrs = make(chan *xerror, 1)
-
-func RespGoroutine() {
-	var err error
-	handleErr(&err, recover())
-	if isErrNil(err) {
-		return
-	}
-	goroutineErrs <- handle(err, "")
 }
 
 func RespDebug() {
