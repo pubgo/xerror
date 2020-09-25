@@ -61,6 +61,10 @@ func TestAs(t *testing.T) {
 func TestExit(t *testing.T) {
 	xerror_core.PrintStack = false
 	xerror.Exit(panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%s\n",panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%v\n",panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%+v\n",panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%#v\n\n\n",panicWrap(1, 2, 4, 5))
 }
 
 func TestTry(t *testing.T) {
