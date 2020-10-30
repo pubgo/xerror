@@ -4,18 +4,18 @@ import "strings"
 
 type xerrorCombine []*xerror
 
-func (t *xerrorCombine) String() string {
+func (t xerrorCombine) String() string {
 	var result []string
-	for i := range *t {
-		result = append(result, "["+(*t)[i].String()+"]")
+	for i := range t {
+		result = append(result, "["+(t)[i].String()+"]")
 	}
 	return strings.Join(result, ", ")
 }
 
-func (t *xerrorCombine) Error() string {
+func (t xerrorCombine) Error() string {
 	var result []string
-	for i := range *t {
-		result = append(result, "["+(*t)[i].Error()+"]")
+	for i := range t {
+		result = append(result, "["+(t)[i].Error()+"]")
 	}
 	return strings.Join(result, ", ")
 }

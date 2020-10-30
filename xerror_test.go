@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/xerror_core"
@@ -60,12 +61,33 @@ func TestAs(t *testing.T) {
 func TestExit(t *testing.T) {
 	xerror_core.PrintStack = false
 	xerror.Exit(panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%s\n",panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%v\n",panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%+v\n",panicWrap(1, 2, 4, 5))
+	//fmt.Printf("%#v\n\n\n",panicWrap(1, 2, 4, 5))
 }
 
 func TestTry(t *testing.T) {
 	fmt.Println(xerror.Try(func() {
 		panic("hello")
 	}))
+}
+
+func TestRespGoroutine(t *testing.T) {
+	xerror.Exit(xerror.SetGoroutineErrHandler("test", func(err xerror.XErr) {
+		fmt.Println(err.Stack(true))
+	}))
+
+	go func() {
+		defer xerror.RespGoroutine("test")
+		xerror.Panic(panicWrap(1, 2, 4, 5))
+	}()
+
+	go func() {
+		defer xerror.RespGoroutine()
+		xerror.Panic(panicWrap(1, 2, 4, 5))
+	}()
+	time.Sleep(time.Second)
 }
 
 func BenchmarkPanic(b *testing.B) {

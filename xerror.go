@@ -3,12 +3,11 @@ package xerror
 import (
 	"errors"
 	"fmt"
+	"github.com/pubgo/xerror/internal/wrapper"
 	"github.com/pubgo/xerror/xerror_util"
 	"net/http"
 	"os"
 	"reflect"
-
-	"github.com/pubgo/xerror/internal/wrapper"
 )
 
 type XErr interface {
@@ -29,25 +28,30 @@ func Combine(errs ...error) error {
 		if errs[i] == nil {
 			continue
 		}
-
 		_errs = append(_errs, handle(errs[i], ""))
 	}
 
 	if len(_errs) == 0 {
 		return nil
 	}
-	return &_errs
+
+	return _errs
 }
 
 // Parse parse error to xerror
 func Parse(err error) XErr {
+	if isErrNil(err) {
+		return nil
+	}
+
 	return handle(err, "")
 }
 
 func Fmt(format string, a ...interface{}) *xerrorBase {
-	xrr := New(fmt.Sprintf(format, a...))
-	xrr.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
-	return xrr
+	xw := &xerrorBase{}
+	xw.Code = fmt.Sprintf(format, a...)
+	xw.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
+	return xw
 }
 
 func New(code string, ms ...string) *xerrorBase {
@@ -65,6 +69,10 @@ func New(code string, ms ...string) *xerrorBase {
 }
 
 func Try(fn func()) (err error) {
+	if fn == nil {
+		return New("the parameters fn should not be nil")
+	}
+
 	defer func() {
 		if _err := recover(); _err != nil {
 			err2 := &xerror{}
@@ -72,13 +80,14 @@ func Try(fn func()) (err error) {
 
 			switch err1 := _err.(type) {
 			case error:
-				err2.Cause1 = New(unwrap(err1).Error(), fmt.Sprintf("%+v", err1))
+				err2.Cause1 = &xerrorBase{Code: unwrap(err1).Error(), Msg: fmt.Sprintf("%+v", err1)}
 			default:
-				err2.Cause1 = New(ErrUnknownType.Error(), fmt.Sprintf("%+v", err1))
+				err2.Cause1 = &xerrorBase{Code: ErrUnknownType.Error(), Msg: fmt.Sprintf("%+v", err1)}
 			}
 			err = err2
 		}
 	}()
+
 	fn()
 	return
 }
@@ -94,7 +103,7 @@ func RespDebug() {
 		return
 	}
 
-	fmt.Println(handle(err, "").p())
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 }
 
@@ -120,7 +129,7 @@ func RespExit() {
 		return
 	}
 
-	fmt.Println(handle(err, "").p())
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
 }
@@ -194,7 +203,8 @@ func ExitErr(dat interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return dat
 	}
-	fmt.Println(handle(err, "").p())
+
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
 	return nil
@@ -205,7 +215,8 @@ func ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
-	fmt.Println(handle(err, msg, args...).p())
+
+	p(handle(err, msg, args...).p())
 	wrapper.PrintStack()
 	os.Exit(1)
 }
@@ -214,7 +225,8 @@ func Exit(err error) {
 	if isErrNil(err) {
 		return
 	}
-	fmt.Println(handle(err, "").p())
+
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
 }

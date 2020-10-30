@@ -1,8 +1,9 @@
 package xerror_http
 
 import (
-	"github.com/pubgo/xerror"
 	"net/http"
+
+	"github.com/pubgo/xerror"
 )
 
 var (

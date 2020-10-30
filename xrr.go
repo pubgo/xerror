@@ -3,8 +3,9 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pubgo/xerror/xerror_color"
 	"strings"
+
+	"github.com/pubgo/xerror/xerror_color"
 )
 
 type xerror struct {
@@ -28,9 +29,9 @@ func (t *xerror) Cause() error {
 func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	buf.WriteString("========================================================================================================================\n")
 	if xrr.Cause1 != nil {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1))
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1.Error()))
 	}
-	if xrr.Msg != "" {
+	if strings.TrimSpace(xrr.Msg) != "" {
 		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorGreen.P("Msg"), xrr.Msg))
 	}
 	buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.ColorYellow.P("Caller"), xrr.Caller))
@@ -74,18 +75,22 @@ func (t *xerror) Is(err error) bool {
 func (t *xerror) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		if s.Flag('+') || s.Flag('#') {
+		if s.Flag('#') {
+			type errors xerror
+			fmt.Fprintf(s, "%#v", (*errors)(t))
+			return
+		}
+
+		if s.Flag('+') {
 			fmt.Fprint(s, t.Stack(true))
 			return
 		}
 
 		fmt.Fprint(s, t.Stack())
-	case 's':
-		fmt.Fprint(s, t.String())
-	case 'q':
-		fmt.Fprint(s, t.Error())
+	case 's', 'q':
+		fmt.Fprint(s, t.Msg+": \n\t"+t.Error()+"\n\t"+t.Caller)
 	default:
-		fmt.Fprint(s, t.Error())
+		fmt.Fprint(s, t.Msg)
 	}
 }
 
