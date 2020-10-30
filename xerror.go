@@ -103,7 +103,7 @@ func RespDebug() {
 		return
 	}
 
-	fmt.Println(handle(err, "").p())
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 }
 
@@ -129,7 +129,7 @@ func RespExit() {
 		return
 	}
 
-	fmt.Println(handle(err, "").p())
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
 }
@@ -203,7 +203,8 @@ func ExitErr(dat interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return dat
 	}
-	fmt.Println(handle(err, "").p())
+
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
 	return nil
@@ -214,7 +215,8 @@ func ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
-	fmt.Println(handle(err, msg, args...).p())
+
+	p(handle(err, msg, args...).p())
 	wrapper.PrintStack()
 	os.Exit(1)
 }
@@ -223,7 +225,8 @@ func Exit(err error) {
 	if isErrNil(err) {
 		return
 	}
-	fmt.Println(handle(err, "").p())
+
+	p(handle(err, "").p())
 	wrapper.PrintStack()
 	os.Exit(1)
 }

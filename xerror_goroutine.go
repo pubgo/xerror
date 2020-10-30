@@ -1,7 +1,6 @@
 package xerror
 
 import (
-	"fmt"
 	"github.com/pubgo/xerror/xerror_util"
 	"sync"
 )
@@ -11,7 +10,7 @@ func defaultGoroutineErrHandle(err XErr) {
 		return
 	}
 
-	fmt.Println(err.Println())
+	p(err.Println())
 }
 
 var goroutineErrHandleMap sync.Map

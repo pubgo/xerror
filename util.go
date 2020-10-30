@@ -3,6 +3,7 @@ package xerror
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/pubgo/xerror/internal/wrapper"
 	"github.com/pubgo/xerror/xerror_util"
@@ -81,4 +82,8 @@ func unwrap(err error) error {
 		}
 		err = u.Unwrap()
 	}
+}
+
+func p(a ...interface{}) {
+	_, _ = os.Stderr.WriteString(fmt.Sprintln(a...))
 }
