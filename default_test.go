@@ -9,8 +9,29 @@ import (
 	"github.com/pubgo/xerror"
 	"github.com/pubgo/xerror/xerror_core"
 	"github.com/pubgo/xerror/xerror_http"
-	"github.com/pubgo/xlog"
 )
+
+func TestPanic(t *testing.T) {
+	defer xerror.RespJson()
+	xerror.Panic(xerror.New("ok"))
+}
+
+func TestPanicWith(t *testing.T) {
+	defer xerror.RespJson()
+
+	xerror.With().Panic(xerror.New("ok"))
+}
+
+func init1Next() (err error) {
+	defer xerror.RespErr(&err)
+	xerror.Next().Panic(fmt.Errorf("test next"))
+	return nil
+}
+
+func TestNext(t *testing.T) {
+	defer xerror.RespJson()
+	xerror.Next().Panic(init1Next())
+}
 
 func check(b bool) {
 	if !b {
@@ -38,11 +59,8 @@ func TestCombine(t *testing.T) {
 	defer xerror.Resp(func(err xerror.XErr) {
 		fmt.Println(err.Stack(true))
 	})
+	//xerror.With().Panic(xerror.Combine(panicWrap(1, 2, 4, 5), panicWrap(1, 2, 4, 5)))
 	xerror.Panic(xerror.Combine(panicWrap(1, 2, 4, 5), panicWrap(1, 2, 4, 5)))
-}
-
-func TestLog(t *testing.T) {
-	xlog.InfoF("gg \n%v", xerror.Parse(xerror.New("ddd", "dddnjnjnj")).Stack(true))
 }
 
 func TestStack(t *testing.T) {

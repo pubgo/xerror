@@ -1,8 +1,9 @@
 package xerror
 
 import (
-	"github.com/pubgo/xerror/xerror_util"
 	"sync"
+
+	"github.com/pubgo/xerror/xerror_util"
 )
 
 func defaultGoroutineErrHandle(err XErr) {
@@ -56,19 +57,4 @@ func SetGoroutineErrHandler(name string, fn func(err XErr)) error {
 type goroutineErrEvent struct {
 	name string
 	err  *xerror
-}
-
-func RespGoroutine(name ...string) {
-	nm := "__xerror"
-	if len(name) > 0 {
-		nm = name[0]
-	}
-
-	var err error
-	handleErr(&err, recover())
-	if isErrNil(err) {
-		return
-	}
-
-	goroutineErrs <- &goroutineErrEvent{name: nm, err: handle(err, "")}
 }

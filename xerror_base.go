@@ -1,12 +1,34 @@
 package xerror
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pubgo/xerror/internal/wrapper"
 	"github.com/pubgo/xerror/xerror_core"
 	"github.com/pubgo/xerror/xerror_util"
 )
+
+func Fmt(format string, a ...interface{}) *xerrorBase {
+	xw := &xerrorBase{}
+	xw.Code = fmt.Sprintf(format, a...)
+	xw.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
+	return xw
+}
+
+func New(code string, ms ...string) *xerrorBase {
+	var msg string
+	if len(ms) > 0 {
+		msg = ms[0]
+	}
+
+	xw := &xerrorBase{}
+	xw.Code = code
+	xw.Msg = msg
+	xw.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth())
+
+	return xw
+}
 
 type xerrorBase struct {
 	Code   string `json:"code,omitempty"`

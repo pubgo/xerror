@@ -20,18 +20,14 @@ func handleErr(err *error, _err interface{}) {
 	case string:
 		*err = errors.New(_err)
 	default:
-		*err = WrapF(ErrUnknownType, fmt.Sprintf("%+v", _err))
+		*err = WrapF(ErrUnknownType, fmt.Sprintf("%#v", _err))
 	}
 }
 
-func handle(err error, msg string, args ...interface{}) *xerror {
-	if len(args) > 0 {
-		msg = fmt.Sprintf(msg, args...)
-	}
-
+func handle(err error, opts xerrorOptions) *xerror {
 	err2 := &xerror{}
-	err2.Msg = msg
-	err2.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth() + 1)
+	err2.Msg = opts.msg
+	err2.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth() + 1 + opts.depth)
 	switch e := err.(type) {
 	case *xerrorBase:
 		err2.Cause1 = e
