@@ -41,6 +41,7 @@ func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 		}
 	}
 }
+
 func (t *xerror) p() string {
 	if t == nil || t.Cause1 == nil {
 		return ""
@@ -59,7 +60,6 @@ func (t *xerror) Is(err error) bool {
 	if t == nil || t.Cause1 == nil || err == nil {
 		return false
 	}
-
 	switch err := err.(type) {
 	case *xerrorBase:
 		return err == t.Cause1
