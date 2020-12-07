@@ -28,6 +28,11 @@ func init1Next() (err error) {
 	return nil
 }
 
+func TestDone(t *testing.T) {
+	defer xerror.RespJson()
+	xerror.Done()
+}
+
 func TestNext(t *testing.T) {
 	defer xerror.RespJson()
 	xerror.Next().Panic(init1Next())

@@ -17,6 +17,7 @@ type XError interface {
 	Parse(err error) XErr
 	Try(fn func()) (err error)
 	Panic(err error)
+	Done()
 	PanicF(err error, msg string, args ...interface{})
 	Wrap(err error) error
 	WrapF(err error, msg string, args ...interface{}) error

@@ -110,6 +110,9 @@ func (t xerrorOptions) Try(fn func()) (err error) {
 	return
 }
 
+func Done()                   { With(WithCaller(1)).Done() }
+func (t xerrorOptions) Done() { panic(ErrDone) }
+
 func Panic(err error) { With(WithCaller(1)).Panic(err) }
 func (t xerrorOptions) Panic(err error) {
 	if isErrNil(err) {

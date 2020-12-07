@@ -9,6 +9,9 @@ import (
 
 func RespErr(err *error) {
 	handleErr(err, recover())
+	if isErrNil(*err) {
+		*err = nil
+	}
 }
 
 func RespJson() {
@@ -36,7 +39,7 @@ func RespDebug() {
 func Resp(f func(err XErr)) {
 	var err error
 	handleErr(&err, recover())
-	if err == nil {
+	if isErrNil(err) {
 		return
 	}
 
