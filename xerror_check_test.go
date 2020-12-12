@@ -8,12 +8,12 @@ func TestCheckNil(t *testing.T) {
 	defer RespDebug()
 
 	var a *int
-	CheckNil(a)
+	CheckNil(a,"aaaa")
 }
 
 func TestCheck(t *testing.T) {
 	defer RespDebug()
 
-	Check(true)
-	Check(false)
+	Check(true,"aaaa")
+	Check(false,"aaaa")
 }

@@ -127,7 +127,7 @@ func (t xerrorOptions) PanicF(err error, msg string, args ...interface{}) {
 		return
 	}
 
-	WithMsg(msg, args)(&t)
+	WithMsg(msg, args...)(&t)
 	panic(handle(err, t))
 }
 
@@ -147,7 +147,7 @@ func (t xerrorOptions) WrapF(err error, msg string, args ...interface{}) error {
 		return nil
 	}
 
-	WithMsg(msg, args)(&t)
+	WithMsg(msg, args...)(&t)
 	return handle(err, t)
 }
 
@@ -206,13 +206,13 @@ func (t xerrorOptions) Exit(err error) {
 }
 
 // ExitF
-func ExitF(err error, msg string, args ...interface{}) { With(WithCaller(1)).ExitF(err, msg, args...) }
+func ExitF(err error, msg string, args ...interface{}) { Next().ExitF(err, msg, args...) }
 func (t xerrorOptions) ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
 
-	WithMsg(msg, args)(&t)
+	WithMsg(msg, args...)(&t)
 	p(handle(err, t).p())
 	wrapper.PrintStack()
 	os.Exit(1)
