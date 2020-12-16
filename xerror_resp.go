@@ -35,6 +35,16 @@ func RespDebug() {
 	wrapper.PrintStack()
 }
 
+func RespNext() {
+	var err error
+	handleErr(&err, recover())
+	if isErrNil(err) {
+		return
+	}
+
+	With(WithCaller(5)).Panic(err)
+}
+
 // Resp
 func Resp(f func(err XErr)) {
 	var err error

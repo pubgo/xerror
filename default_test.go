@@ -11,8 +11,18 @@ import (
 	"github.com/pubgo/xerror/xerror_http"
 )
 
+func TestRespNext(t *testing.T) {
+	defer xerror.RespDebug()
+	TestPanic1(t)
+}
+
 func TestPanic(t *testing.T) {
 	defer xerror.RespJson()
+	xerror.Panic(xerror.New("ok"))
+}
+
+func TestPanic1(t *testing.T) {
+	defer xerror.RespNext()
 	xerror.Panic(xerror.New("ok"))
 }
 
