@@ -35,14 +35,14 @@ func RespDebug() {
 	wrapper.PrintStack()
 }
 
-func RespNext() {
+func RespRaise(format string, a ...interface{}) {
 	var err error
 	handleErr(&err, recover())
 	if isErrNil(err) {
 		return
 	}
 
-	With(WithCaller(5)).Panic(err)
+	With(WithCaller(5)).PanicF(err, format, a...)
 }
 
 // Resp

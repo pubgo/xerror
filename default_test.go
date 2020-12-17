@@ -22,7 +22,7 @@ func TestPanic(t *testing.T) {
 }
 
 func TestPanic1(t *testing.T) {
-	defer xerror.RespNext()
+	defer xerror.RespRaise("test raise")
 	xerror.Panic(xerror.New("ok"))
 }
 
