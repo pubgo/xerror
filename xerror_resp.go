@@ -3,7 +3,7 @@ package xerror
 import (
 	"os"
 
-	"github.com/pubgo/xerror/internal/wrapper"
+	"github.com/pubgo/xerror/xerror_envs"
 	"github.com/pubgo/xerror/xerror_util"
 )
 
@@ -32,7 +32,7 @@ func RespDebug() {
 	}
 
 	p(handle(err, xerrorOptions{}).p())
-	wrapper.PrintStack()
+	xerror_envs.PrintStackVal()
 }
 
 func RespRaise(format string, a ...interface{}) {
@@ -57,7 +57,7 @@ func Resp(f func(err XErr)) {
 		f(err.(XErr))
 		return
 	}
-	f(&xerror{Cause1: err, Caller: xerror_util.CallerWithDepth(wrapper.CallDepth() + 1)})
+	f(&xerror{Cause1: err, Caller: xerror_util.CallerWithDepth(xerror_envs.CallDepthVal() + 1)})
 }
 
 func RespExit() {
@@ -68,7 +68,7 @@ func RespExit() {
 	}
 
 	p(handle(err, xerrorOptions{}).p())
-	wrapper.PrintStack()
+	xerror_envs.PrintStackVal()
 	os.Exit(1)
 }
 

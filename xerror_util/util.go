@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubgo/xerror/internal/wrapper"
+	"github.com/pubgo/xerror/xerror_envs"
 )
 
 type frame uintptr
@@ -15,11 +15,11 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func CallerWithDepth(callDepths ...int) string {
-	if !wrapper.IsCaller() {
+	if !xerror_envs.IsCallerVal() {
 		return ""
 	}
 
-	var cd = wrapper.CallDepth()
+	var cd = xerror_envs.CallDepthVal()
 	if len(callDepths) > 0 {
 		cd = callDepths[0]
 	}

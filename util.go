@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime/debug"
 
-	"github.com/pubgo/xerror/internal/wrapper"
+	"github.com/pubgo/xerror/xerror_envs"
 	"github.com/pubgo/xerror/xerror_util"
 )
 
@@ -27,7 +28,7 @@ func handleErr(err *error, _err interface{}) {
 func handle(err error, opts xerrorOptions) *xerror {
 	err2 := &xerror{}
 	err2.Msg = opts.msg
-	err2.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth() + 1 + opts.depth)
+	err2.Caller = xerror_util.CallerWithDepth(xerror_envs.CallDepthVal() + 1 + opts.depth)
 	switch e := err.(type) {
 	case *xerrorBase:
 		err2.Cause1 = e
@@ -82,4 +83,10 @@ func unwrap(err error) error {
 
 func p(a ...interface{}) {
 	_, _ = os.Stderr.WriteString(fmt.Sprintln(a...))
+}
+
+func PrintStack() {
+	if xerror_envs.PrintStackVal() {
+		debug.PrintStack()
+	}
 }

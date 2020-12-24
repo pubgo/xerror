@@ -7,7 +7,6 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/pubgo/xerror/internal/wrapper"
 	"github.com/pubgo/xerror/xerror_util"
 )
 
@@ -201,7 +200,7 @@ func (t xerrorOptions) Exit(err error) {
 	}
 
 	p(handle(err, t).p())
-	wrapper.PrintStack()
+	PrintStack()
 	os.Exit(1)
 }
 
@@ -214,7 +213,7 @@ func (t xerrorOptions) ExitF(err error, msg string, args ...interface{}) {
 
 	WithMsg(msg, args...)(&t)
 	p(handle(err, t).p())
-	wrapper.PrintStack()
+	PrintStack()
 	os.Exit(1)
 }
 
@@ -226,7 +225,7 @@ func (t xerrorOptions) ExitErr(dat interface{}, err error) interface{} {
 	}
 
 	p(handle(err, t).p())
-	wrapper.PrintStack()
+	PrintStack()
 	os.Exit(1)
 	return nil
 }

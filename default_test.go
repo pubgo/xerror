@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/pubgo/xerror"
-	"github.com/pubgo/xerror/xerror_core"
+	"github.com/pubgo/xerror/internal/envs"
 	"github.com/pubgo/xerror/xerror_http"
 )
 
@@ -92,7 +92,7 @@ func TestAs(t *testing.T) {
 }
 
 func TestExit(t *testing.T) {
-	xerror_core.PrintStack = false
+	envs.PrintStack = false
 	xerror.Exit(panicWrap(1, 2, 4, 5))
 	//fmt.Printf("%s\n",panicWrap(1, 2, 4, 5))
 	//fmt.Printf("%v\n",panicWrap(1, 2, 4, 5))
@@ -134,7 +134,7 @@ func BenchmarkPanic(b *testing.B) {
 }
 
 func BenchmarkPanicWithoutCaller(b *testing.B) {
-	xerror_core.IsCaller = false
+	envs.IsCaller = false
 	for i := 0; i < b.N; i++ {
 		_ = func() (err error) {
 			defer xerror.RespErr(&err)
