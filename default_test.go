@@ -22,7 +22,10 @@ func TestPanic(t *testing.T) {
 }
 
 func TestPanic1(t *testing.T) {
-	defer xerror.RespRaise("test raise")
+	defer xerror.RespRaise(func(err xerror.XErr) error {
+		return xerror.WrapF(err, "test raise")
+	})
+
 	xerror.Panic(xerror.New("ok"))
 }
 

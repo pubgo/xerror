@@ -35,14 +35,16 @@ func RespDebug() {
 	xerror_envs.PrintStackVal()
 }
 
-func RespRaise(format string, a ...interface{}) {
+func RespRaise(fn func(err XErr) error) {
 	var err error
 	handleErr(&err, recover())
 	if isErrNil(err) {
 		return
 	}
 
-	With(WithCaller(5)).PanicF(err, format, a...)
+	err.(*xerror).Caller = xerror_util.CallerWithFunc(fn)
+	err = fn(err.(XErr))
+	With(WithCaller(5)).Panic(err)
 }
 
 // Resp
