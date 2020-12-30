@@ -67,7 +67,7 @@ func CallerWithFunc(fn interface{}) string {
 	return buf.String()
 }
 
-func Func(fn interface{}) func(...interface{}) func(...interface{}) {
+func FuncRaw(fn interface{}) func(...interface{}) []reflect.Value {
 	if fn == nil {
 		panic("[fn] is nil")
 	}
@@ -82,13 +82,12 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 
 	var tfn = vfn.Type()
 	var numIn = tfn.NumIn()
-	var numOut = tfn.NumOut()
 	var variadicType reflect.Type
 	if tfn.IsVariadic() {
 		variadicType = tfn.In(numIn - 1)
 	}
 
-	return func(args ...interface{}) func(...interface{}) {
+	return func(args ...interface{}) []reflect.Value {
 		if variadicType == nil && numIn != len(args) || variadicType != nil && len(args) < numIn-1 {
 			panic(fmt.Sprintf("the input params of func is not match, func: %s, numIn:%d numArgs:%d", tfn, numIn, len(args)))
 		}
@@ -127,8 +126,14 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 				panic(fmt.Sprintf("[vfn.Call] panic, err:%#v, args:%s, fn:%s", err, valueStr(_args...), tfn))
 			}
 		}()
-		retValues := vfn.Call(_args)
+		return vfn.Call(_args)
+	}
+}
 
+func Func(fn interface{}) func(...interface{}) func(...interface{}) {
+	vfn := FuncRaw(fn)
+	return func(args ...interface{}) func(...interface{}) {
+		ret := vfn(args...)
 		return func(fns ...interface{}) {
 			if len(fns) == 0 {
 				return
@@ -146,9 +151,10 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 				panic("[fns] type error or nil")
 			}
 
-			if cfn.Type().NumIn() != numOut {
+			tfn := reflect.TypeOf(fn)
+			if cfn.Type().NumIn() != tfn.NumOut() {
 				panic(fmt.Sprintf("the input num and output num of the callback func is not match, [%d]<->[%d]",
-					cfn.Type().NumIn(), numOut))
+					cfn.Type().NumIn(), tfn.NumOut()))
 			}
 
 			if cfn.Type().NumIn() != 0 && cfn.Type().In(0) != tfn.Out(0) {
@@ -157,13 +163,13 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 			}
 
 			defer func() {
-				valuePut(retValues)
+				valuePut(ret)
 				if err := recover(); err != nil {
-					panic(fmt.Sprintf("[cfn.Call] panic, err:%#v, args:%s, fn:%s", err, valueStr(retValues...), cfn.Type()))
+					panic(fmt.Sprintf("[cfn.Call] panic, err:%#v, args:%s, fn:%s", err, valueStr(ret...), cfn.Type()))
 				}
 			}()
 
-			cfn.Call(retValues)
+			cfn.Call(ret)
 		}
 	}
 }

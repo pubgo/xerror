@@ -10,7 +10,7 @@ func TestCheckNil(t *testing.T) {
 	var a *int
 	AssertNotNil(a, func() string {
 		return "ok"
-	}, 10)
+	})
 	//AssertNotNil(a, "aaaa")
 }
 
