@@ -14,6 +14,16 @@ func RespErr(err *error) {
 	}
 }
 
+func RespChan(errChan chan<- error) {
+	var err error
+	handleErr(&err, recover())
+	if isErrNil(err) {
+		return
+	}
+
+	errChan <- err
+}
+
 func RespJson() {
 	var err error
 	handleErr(&err, recover())
