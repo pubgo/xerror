@@ -1,11 +1,13 @@
 package xerror_util
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/pubgo/xerror/xerror_envs"
 )
@@ -63,4 +65,131 @@ func CallerWithFunc(fn interface{}) string {
 	ma := strings.Split(_e.Name(), ".")
 	buf.WriteString(ma[len(ma)-1])
 	return buf.String()
+}
+
+func Func(fn interface{}) func(...interface{}) func(...interface{}) {
+	if fn == nil {
+		panic("[fn] is nil")
+	}
+
+	vfn, ok := fn.(reflect.Value)
+	if !ok {
+		vfn = reflect.ValueOf(fn)
+	}
+	if !vfn.IsValid() || vfn.Kind() != reflect.Func || vfn.IsNil() {
+		panic("[fn] type error or nil")
+	}
+
+	var tfn = vfn.Type()
+	var numIn = tfn.NumIn()
+	var numOut = tfn.NumOut()
+	var variadicType reflect.Type
+	if tfn.IsVariadic() {
+		variadicType = tfn.In(numIn - 1)
+	}
+
+	return func(args ...interface{}) func(...interface{}) {
+		if variadicType == nil && numIn != len(args) || variadicType != nil && len(args) < numIn-1 {
+			panic(fmt.Sprintf("the input params of func is not match, func: %s, numIn:%d numArgs:%d", tfn, numIn, len(args)))
+		}
+
+		var _args = valueGet()
+		for _, k := range args {
+			var vk reflect.Value
+			if k == nil {
+				vk = reflect.ValueOf(k)
+			} else if k1, ok := k.(reflect.Value); ok {
+				vk = k1
+			} else {
+				vk = reflect.ValueOf(k)
+			}
+			_args = append(_args, vk)
+		}
+
+		for i, k := range _args {
+			if i >= numIn {
+				if variadicType == nil {
+					panic(fmt.Sprintf("[variadicType] should not be nil, args:%s, fn:%s", fmt.Sprint(args...), tfn))
+				}
+
+				_args[i] = reflect.Zero(variadicType)
+				continue
+			}
+
+			if !k.IsValid() {
+				_args[i] = reflect.Zero(tfn.In(i))
+			}
+		}
+
+		defer func() {
+			valuePut(_args)
+			if err := recover(); err != nil {
+				panic(fmt.Sprintf("[vfn.Call] panic, err:%#v, args:%s, fn:%s", err, valueStr(_args...), tfn))
+			}
+		}()
+		retValues := vfn.Call(_args)
+
+		return func(fns ...interface{}) {
+			if len(fns) == 0 {
+				return
+			}
+
+			if fns[0] == nil {
+				panic("[fns] is nil")
+			}
+
+			cfn, ok := fns[0].(reflect.Value)
+			if !ok {
+				cfn = reflect.ValueOf(fns[0])
+			}
+			if !cfn.IsValid() || cfn.Kind() != reflect.Func || cfn.IsNil() {
+				panic("[fns] type error or nil")
+			}
+
+			if cfn.Type().NumIn() != numOut {
+				panic(fmt.Sprintf("the input num and output num of the callback func is not match, [%d]<->[%d]",
+					cfn.Type().NumIn(), numOut))
+			}
+
+			if cfn.Type().NumIn() != 0 && cfn.Type().In(0) != tfn.Out(0) {
+				panic(fmt.Sprintf("the output type of the callback func is not match, [%s]<->[%s]",
+					cfn.Type().In(0), tfn.Out(0)))
+			}
+
+			defer func() {
+				valuePut(retValues)
+				if err := recover(); err != nil {
+					panic(fmt.Sprintf("[cfn.Call] panic, err:%#v, args:%s, fn:%s", err, valueStr(retValues...), cfn.Type()))
+				}
+			}()
+
+			cfn.Call(retValues)
+		}
+	}
+}
+
+var _valuePool = sync.Pool{
+	New: func() interface{} {
+		return []reflect.Value{}
+	},
+}
+
+func valueGet() []reflect.Value {
+	return _valuePool.Get().([]reflect.Value)
+}
+
+func valuePut(v []reflect.Value) {
+	_valuePool.Put(v[:0])
+}
+
+func valueStr(values ...reflect.Value) string {
+	var data []interface{}
+	for _, dt := range values {
+		var val interface{} = nil
+		if dt.IsValid() {
+			val = dt.Interface()
+		}
+		data = append(data, val)
+	}
+	return fmt.Sprint(data...)
 }

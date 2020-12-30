@@ -230,7 +230,7 @@ func (t xerrorOptions) ExitErr(dat interface{}, err error) interface{} {
 	return nil
 }
 
-// FamilyAs Check if *err belongs to *target's family
+// FamilyAs Assert if *err belongs to *target's family
 func FamilyAs(err error, target interface{}) bool { return With(WithCaller(1)).FamilyAs(err, target) }
 func (t xerrorOptions) FamilyAs(err error, target interface{}) bool {
 	if target == nil {
