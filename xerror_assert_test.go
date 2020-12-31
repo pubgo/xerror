@@ -8,10 +8,9 @@ func TestCheckNil(t *testing.T) {
 	defer RespExit()
 
 	var a *int
-	AssertNotNil(a, func() string {
+	AssertNil(a, func() string {
 		return "ok"
 	})
-	//AssertNotNil(a, "aaaa")
 }
 
 func TestCheck(t *testing.T) {

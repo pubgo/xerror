@@ -1,24 +1,25 @@
 package xerror
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
 	"github.com/pubgo/xerror/xerror_util"
 )
 
-func AssertNotNil(val interface{}, a ...interface{}) {
+func AssertNil(val interface{}, a ...interface{}) {
 	if val == nil || reflect.ValueOf(val).IsZero() {
-		Next().PanicF(New("[val] is nil"), handleArgs(a...))
+		Next().Panic(errors.New(handleArgs(a...)))
 	}
 }
 
 func Assert(valid bool, a ...interface{}) {
-	if valid {
+	if !valid {
 		return
 	}
 
-	Next().PanicF(New("[valid] is false"), handleArgs(a...))
+	Next().Panic(errors.New(handleArgs(a...)))
 }
 
 func handleArgs(a ...interface{}) string {
