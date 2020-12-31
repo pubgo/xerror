@@ -59,7 +59,7 @@ func (t xerrorOptions) Combine(errs ...error) error {
 		return nil
 	}
 
-	var _errs xerrorCombine
+	var _errs combine
 	for i := range errs {
 		if errs[i] == nil {
 			continue
@@ -90,20 +90,9 @@ func (t xerrorOptions) Try(fn func()) (err error) {
 		return New("the [fn] parameters should not be nil")
 	}
 
-	defer func() {
-		if _err := recover(); _err != nil {
-			err2 := &xerror{}
-			err2.Caller = xerror_util.CallerWithFunc(fn)
-
-			switch err1 := _err.(type) {
-			case error:
-				err2.Cause1 = &xerrorBase{Code: unwrap(err1).Error(), Msg: fmt.Sprintf("%+v", err1)}
-			default:
-				err2.Cause1 = &xerrorBase{Code: ErrUnknownType.Error(), Msg: fmt.Sprintf("%+v", err1)}
-			}
-			err = err2
-		}
-	}()
+	defer Resp(func(err1 XErr) {
+		err = WrapF(err1, xerror_util.CallerWithFunc(fn))
+	})
 
 	fn()
 	return
@@ -200,7 +189,7 @@ func (t xerrorOptions) Exit(err error) {
 	}
 
 	p(handle(err, t).p())
-	PrintStack()
+	printStack()
 	os.Exit(1)
 }
 
@@ -213,7 +202,7 @@ func (t xerrorOptions) ExitF(err error, msg string, args ...interface{}) {
 
 	WithMsg(msg, args...)(&t)
 	p(handle(err, t).p())
-	PrintStack()
+	printStack()
 	os.Exit(1)
 }
 
@@ -225,7 +214,7 @@ func (t xerrorOptions) ExitErr(dat interface{}, err error) interface{} {
 	}
 
 	p(handle(err, t).p())
-	PrintStack()
+	printStack()
 	os.Exit(1)
 	return nil
 }

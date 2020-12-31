@@ -40,7 +40,7 @@ func init() {
 		envs.Delimiter = env
 	}
 
-	expvar.Publish("xerror", expvar.Func(func() interface{} {
+	expvar.Publish("xerror_envs", expvar.Func(func() interface{} {
 		var data []string
 		for _, env := range os.Environ() {
 			if strings.HasPrefix(env, prefix) {

@@ -2,9 +2,9 @@ package xerror
 
 import "strings"
 
-type xerrorCombine []*xerror
+type combine []*xerror
 
-func (t xerrorCombine) String() string {
+func (t combine) String() string {
 	var result []string
 	for i := range t {
 		result = append(result, "["+(t)[i].String()+"]")
@@ -12,7 +12,7 @@ func (t xerrorCombine) String() string {
 	return strings.Join(result, ", ")
 }
 
-func (t xerrorCombine) Error() string {
+func (t combine) Error() string {
 	var result []string
 	for i := range t {
 		result = append(result, "["+(t)[i].Error()+"]")

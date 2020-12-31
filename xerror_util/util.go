@@ -5,6 +5,7 @@ import (
 	"log"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -47,7 +48,7 @@ func CallerWithFunc(fn interface{}) string {
 	}
 
 	var _fn = reflect.ValueOf(fn)
-	if !_fn.IsValid() || _fn.IsNil() || _fn.Kind() != reflect.Func {
+	if !_fn.IsValid() || _fn.Kind() != reflect.Func || _fn.IsNil() {
 		log.Fatalln("not func type or type is nil")
 	}
 
@@ -67,9 +68,9 @@ func CallerWithFunc(fn interface{}) string {
 	return buf.String()
 }
 
-func FuncRaw(fn interface{}) func(...interface{}) []reflect.Value {
+func FuncValue(fn interface{}) func(...reflect.Value) []reflect.Value {
 	if fn == nil {
-		panic("[fn] is nil")
+		log.Fatalln("[fn] is nil")
 	}
 
 	vfn, ok := fn.(reflect.Value)
@@ -77,7 +78,7 @@ func FuncRaw(fn interface{}) func(...interface{}) []reflect.Value {
 		vfn = reflect.ValueOf(fn)
 	}
 	if !vfn.IsValid() || vfn.Kind() != reflect.Func || vfn.IsNil() {
-		panic("[fn] type error or nil")
+		log.Fatalln("[fn] type error or nil")
 	}
 
 	var tfn = vfn.Type()
@@ -87,11 +88,39 @@ func FuncRaw(fn interface{}) func(...interface{}) []reflect.Value {
 		variadicType = tfn.In(numIn - 1)
 	}
 
-	return func(args ...interface{}) []reflect.Value {
+	return func(args ...reflect.Value) []reflect.Value {
 		if variadicType == nil && numIn != len(args) || variadicType != nil && len(args) < numIn-1 {
-			panic(fmt.Sprintf("the input params of func is not match, func: %s, numIn:%d numArgs:%d", tfn, numIn, len(args)))
+			log.Fatalf("the input params of func is not match, func: %s, numIn:%d numArgs:%d\n", tfn, numIn, len(args))
 		}
 
+		for i, k := range args {
+			if i >= numIn {
+				if variadicType == nil {
+					log.Fatalf("[variadicType] should not be nil, args:%s, fn:%s", valueStr(args...), tfn)
+				}
+
+				args[i] = reflect.Zero(variadicType)
+				continue
+			}
+
+			if !k.IsValid() {
+				args[i] = reflect.Zero(tfn.In(i))
+			}
+		}
+
+		defer func() {
+			valuePut(args)
+			if err := recover(); err != nil {
+				panic(fmt.Sprintf("[vfn.Call] panic, err:%#v, args:%s, fn:%s", err, valueStr(args...), tfn))
+			}
+		}()
+		return vfn.Call(args)
+	}
+}
+
+func FuncRaw(fn interface{}) func(...interface{}) []reflect.Value {
+	vfn := FuncValue(fn)
+	return func(args ...interface{}) []reflect.Value {
 		var _args = valueGet()
 		for _, k := range args {
 			var vk reflect.Value
@@ -104,29 +133,7 @@ func FuncRaw(fn interface{}) func(...interface{}) []reflect.Value {
 			}
 			_args = append(_args, vk)
 		}
-
-		for i, k := range _args {
-			if i >= numIn {
-				if variadicType == nil {
-					panic(fmt.Sprintf("[variadicType] should not be nil, args:%s, fn:%s", fmt.Sprint(args...), tfn))
-				}
-
-				_args[i] = reflect.Zero(variadicType)
-				continue
-			}
-
-			if !k.IsValid() {
-				_args[i] = reflect.Zero(tfn.In(i))
-			}
-		}
-
-		defer func() {
-			valuePut(_args)
-			if err := recover(); err != nil {
-				panic(fmt.Sprintf("[vfn.Call] panic, err:%#v, args:%s, fn:%s", err, valueStr(_args...), tfn))
-			}
-		}()
-		return vfn.Call(_args)
+		return vfn(_args...)
 	}
 }
 
@@ -140,7 +147,7 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 			}
 
 			if fns[0] == nil {
-				panic("[fns] is nil")
+				log.Fatalln("[fns] is nil")
 			}
 
 			cfn, ok := fns[0].(reflect.Value)
@@ -148,18 +155,18 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 				cfn = reflect.ValueOf(fns[0])
 			}
 			if !cfn.IsValid() || cfn.Kind() != reflect.Func || cfn.IsNil() {
-				panic("[fns] type error or nil")
+				log.Fatalln("[fns] type error or nil")
 			}
 
 			tfn := reflect.TypeOf(fn)
 			if cfn.Type().NumIn() != tfn.NumOut() {
-				panic(fmt.Sprintf("the input num and output num of the callback func is not match, [%d]<->[%d]",
-					cfn.Type().NumIn(), tfn.NumOut()))
+				log.Fatalf("the input num and output num of the callback func is not match, [%d]<->[%d]\n",
+					cfn.Type().NumIn(), tfn.NumOut())
 			}
 
 			if cfn.Type().NumIn() != 0 && cfn.Type().In(0) != tfn.Out(0) {
-				panic(fmt.Sprintf("the output type of the callback func is not match, [%s]<->[%s]",
-					cfn.Type().In(0), tfn.Out(0)))
+				log.Fatalf("the output type of the callback func is not match, [%s]<->[%s]\n",
+					cfn.Type().In(0), tfn.Out(0))
 			}
 
 			defer func() {
@@ -174,18 +181,18 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 	}
 }
 
-var _valuePool = sync.Pool{
+var valuePool = sync.Pool{
 	New: func() interface{} {
 		return []reflect.Value{}
 	},
 }
 
 func valueGet() []reflect.Value {
-	return _valuePool.Get().([]reflect.Value)
+	return valuePool.Get().([]reflect.Value)
 }
 
 func valuePut(v []reflect.Value) {
-	_valuePool.Put(v[:0])
+	valuePool.Put(v[:0])
 }
 
 func valueStr(values ...reflect.Value) string {
@@ -198,4 +205,10 @@ func valueStr(values ...reflect.Value) string {
 		data = append(data, val)
 	}
 	return fmt.Sprint(data...)
+}
+
+func PrintDebug() {
+	if xerror_envs.PrintStackVal() {
+		debug.PrintStack()
+	}
 }

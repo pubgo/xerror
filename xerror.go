@@ -14,10 +14,7 @@ type xerror struct {
 	Caller string `json:"caller,omitempty"`
 }
 
-func (t *xerror) Unwrap() error {
-	return t.Cause()
-}
-
+func (t *xerror) Unwrap() error { return t.Cause() }
 func (t *xerror) Cause() error {
 	if t == nil {
 		return nil
@@ -29,12 +26,12 @@ func (t *xerror) Cause() error {
 func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	buf.WriteString("========================================================================================================================\n")
 	if xrr.Cause1 != nil {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorRed.P("Err"), xrr.Cause1.Error()))
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.Red.P("Err"), xrr.Cause1.Error()))
 	}
 	if strings.TrimSpace(xrr.Msg) != "" {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.ColorGreen.P("Msg"), xrr.Msg))
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.Green.P("Msg"), xrr.Msg))
 	}
-	buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.ColorYellow.P("Caller"), xrr.Caller))
+	buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.Yellow.P("Caller"), xrr.Caller))
 	if errs := trans(xrr.Cause1); errs != nil {
 		for i := range errs {
 			t._p(buf, errs[i])
@@ -60,6 +57,7 @@ func (t *xerror) Is(err error) bool {
 	if t == nil || t.Cause1 == nil || err == nil {
 		return false
 	}
+
 	switch err := err.(type) {
 	case *xerrorBase:
 		return err == t.Cause1
@@ -77,20 +75,20 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 	case 'v':
 		if s.Flag('#') {
 			type errors xerror
-			fmt.Fprintf(s, "%#v", (*errors)(t))
+			_, _ = fmt.Fprintf(s, "%#v", (*errors)(t))
 			return
 		}
 
 		if s.Flag('+') {
-			fmt.Fprint(s, t.Stack(true))
+			_, _ = fmt.Fprint(s, t.Stack(true))
 			return
 		}
 
-		fmt.Fprint(s, t.Stack())
+		_, _ = fmt.Fprint(s, t.Stack())
 	case 's', 'q':
-		fmt.Fprint(s, t.Msg+": \n\t"+t.Error()+"\n\t"+t.Caller)
+		_, _ = fmt.Fprint(s, t.Msg+": \n\t"+t.Error()+"\n\t"+t.Caller)
 	default:
-		fmt.Fprint(s, t.Msg)
+		_, _ = fmt.Fprint(s, t.Msg)
 	}
 }
 
@@ -115,9 +113,10 @@ func (t *xerror) Stack(indent ...bool) string {
 
 // Error
 func (t *xerror) Error() string {
-	if t == nil || t.Cause1 == nil || t.Cause1 == ErrDone {
+	if t == nil || isErrNil(t.Cause1) {
 		return ""
 	}
+
 	return t.Cause1.Error()
 }
 

@@ -3,25 +3,23 @@ package xerror
 import (
 	"errors"
 	"fmt"
-	"os"
-	"runtime/debug"
-
 	"github.com/pubgo/xerror/xerror_envs"
 	"github.com/pubgo/xerror/xerror_util"
+	"os"
 )
 
-func handleErr(err *error, _err interface{}) {
-	if _err == nil {
+func handleRecover(err *error, err1 interface{}) {
+	if err1 == nil {
 		return
 	}
 
-	switch _err := _err.(type) {
+	switch _err := err1.(type) {
 	case error:
 		*err = _err
 	case string:
 		*err = errors.New(_err)
 	default:
-		*err = WrapF(ErrUnknownType, fmt.Sprintf("%#v", _err))
+		*err = WrapF(ErrType, fmt.Sprintf("%#v", _err))
 	}
 }
 
@@ -34,12 +32,12 @@ func handle(err error, opts xerrorOptions) *xerror {
 		err2.Cause1 = e
 	case *xerror:
 		err2.Cause1 = e
-	case *xerrorCombine:
+	case *combine:
 		err2.Cause1 = e
 	case error:
 		err2.Cause1 = &xerrorBase{Code: unwrap(e).Error(), Msg: fmt.Sprintf("%+v", e)}
 	default:
-		err2.Cause1 = &xerrorBase{Code: ErrUnknownType.Error(), Msg: fmt.Sprintf("%+v", e)}
+		err2.Cause1 = &xerrorBase{Code: ErrType.Error(), Msg: fmt.Sprintf("%+v", e)}
 	}
 
 	return err2
@@ -62,7 +60,7 @@ func trans(err error) []*xerror {
 		}}
 	case *xerror:
 		return []*xerror{err}
-	case *xerrorCombine:
+	case *combine:
 		return *err
 	default:
 		return nil
@@ -81,12 +79,5 @@ func unwrap(err error) error {
 	}
 }
 
-func p(a ...interface{}) {
-	_, _ = os.Stderr.WriteString(fmt.Sprintln(a...))
-}
-
-func PrintStack() {
-	if xerror_envs.PrintStackVal() {
-		debug.PrintStack()
-	}
-}
+func p(a ...interface{}) { _, _ = fmt.Fprintln(os.Stderr, a...) }
+func printStack()        { xerror_util.PrintDebug() }

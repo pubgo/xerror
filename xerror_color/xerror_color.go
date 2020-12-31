@@ -6,16 +6,16 @@ import "fmt"
 type Color uint8
 
 const (
-	ColorBlack Color = iota + 30
-	ColorRed
-	ColorGreen
-	ColorYellow
-	ColorBlue
-	ColorMagenta
-	ColorCyan
-	ColorWhite
-	ColorBold     Color = 1
-	ColorDarkGray Color = 90
+	Black Color = iota + 30
+	Red
+	Green
+	Yellow
+	Blue
+	Magenta
+	Cyan
+	White
+	Bold     Color = 1
+	DarkGray Color = 90
 )
 
 // P adds the coloring to the given string.
