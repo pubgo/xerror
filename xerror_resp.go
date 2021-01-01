@@ -42,7 +42,7 @@ func RespRaise(fn func(err XErr) error) {
 		return
 	}
 
-	panic(&xerror{Cause1: fn(err.(XErr)), Caller: xerror_util.CallerWithFunc(fn)})
+	panic(fn(&xerror{Cause1: err, Caller: xerror_util.CallerWithFunc(fn)}))
 }
 
 // Resp
