@@ -23,7 +23,3 @@ kdata
 *.app
 *.pprof
 *.log
-migrations/m_*.go
-node_modules
-*.out
-*.test
