@@ -8,8 +8,9 @@ import (
 type XErr interface {
 	error
 	Stack(indent ...bool) string
-	Println() string
 	String() string
+	Wrap(err error) error
+	WrapF(err error, msg string, args ...interface{}) error
 }
 
 type XError interface {
