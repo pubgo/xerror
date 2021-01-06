@@ -40,7 +40,7 @@ func handle(err error, opts options) *xerror {
 }
 
 func isErrNil(err error) bool {
-	return err == nil || err == ErrDone || unwrap(err) == ErrDone
+	return err == nil || err == ErrDone || Unwrap(err) == ErrDone
 }
 
 func trans(err error) []*xerror {
@@ -63,7 +63,7 @@ func trans(err error) []*xerror {
 	}
 }
 
-func unwrap(err error) error {
+func Unwrap(err error) error {
 	for {
 		u, ok := err.(interface {
 			Unwrap() error
