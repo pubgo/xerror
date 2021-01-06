@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/xerror/xerror_color"
+	"github.com/pubgo/xerror/internal/color"
 )
 
 type xerror struct {
@@ -31,12 +31,12 @@ func (t *xerror) Cause() error {
 func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	buf.WriteString("========================================================================================================================\n")
 	if xrr.Cause1 != nil {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.Red.P("Err"), xrr.Cause1.Error()))
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Red.P("Err"), xrr.Cause1.Error()))
 	}
 	if strings.TrimSpace(xrr.Msg) != "" {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", xerror_color.Green.P("Msg"), xrr.Msg))
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Green.P("Msg"), xrr.Msg))
 	}
-	buf.WriteString(fmt.Sprintf("%s]: %s\n", xerror_color.Yellow.P("Caller"), xrr.Caller))
+	buf.WriteString(fmt.Sprintf("%s]: %s\n", color.Yellow.P("Caller"), xrr.Caller))
 	if errs := trans(xrr.Cause1); errs != nil {
 		for i := range errs {
 			t._p(buf, errs[i])

@@ -10,15 +10,15 @@ import (
 	"github.com/pubgo/xerror/xerror_util"
 )
 
-type xerrorOptions struct {
+type options struct {
 	depth int
 	msg   string
 }
 
-type Option func(t *xerrorOptions)
+type Option func(t *options)
 
 func With(opts ...Option) XError {
-	var opt xerrorOptions
+	var opt options
 
 	for _, o := range opts {
 		o(&opt)
@@ -32,13 +32,13 @@ func Next() XError {
 }
 
 func WithCaller(depth int) Option {
-	return func(t *xerrorOptions) {
+	return func(t *options) {
 		t.depth = depth
 	}
 }
 
 func WithMsg(msg string, args ...interface{}) Option {
-	return func(t *xerrorOptions) {
+	return func(t *options) {
 		if len(args) > 0 {
 			msg = fmt.Sprintf(msg, args...)
 		}
@@ -46,7 +46,7 @@ func WithMsg(msg string, args ...interface{}) Option {
 	}
 }
 
-func (t xerrorOptions) Next() xerrorOptions {
+func (t options) Next() options {
 	opts := t
 	opts.depth += 1
 	return opts
@@ -54,7 +54,7 @@ func (t xerrorOptions) Next() xerrorOptions {
 
 // Combine combine multiple errors
 func Combine(errs ...error) error { return With(WithCaller(1)).Combine(errs...) }
-func (t xerrorOptions) Combine(errs ...error) error {
+func (t options) Combine(errs ...error) error {
 	if len(errs) == 0 {
 		return nil
 	}
@@ -76,7 +76,7 @@ func (t xerrorOptions) Combine(errs ...error) error {
 
 // Parse parse error to xerror
 func Parse(err error) XErr { return With().Parse(err) }
-func (t xerrorOptions) Parse(err error) XErr {
+func (t options) Parse(err error) XErr {
 	if isErrNil(err) {
 		return nil
 	}
@@ -85,24 +85,22 @@ func (t xerrorOptions) Parse(err error) XErr {
 }
 
 func Try(fn func()) (err error) { return With(WithCaller(1)).Try(fn) }
-func (t xerrorOptions) Try(fn func()) (err error) {
+func (t options) Try(fn func()) (err error) {
 	if fn == nil {
 		return New("the [fn] parameters should not be nil")
 	}
 
-	defer Resp(func(err1 XErr) {
-		err = WrapF(err1, xerror_util.CallerWithFunc(fn))
-	})
+	defer Resp(func(err1 XErr) { err = WrapF(err1, xerror_util.CallerWithFunc(fn)) })
 
 	fn()
 	return
 }
 
-func Done()                   { With(WithCaller(1)).Done() }
-func (t xerrorOptions) Done() { panic(ErrDone) }
+func Done()             { With(WithCaller(1)).Done() }
+func (t options) Done() { panic(ErrDone) }
 
-func Panic(err error) { With(WithCaller(1)).Panic(err) }
-func (t xerrorOptions) Panic(err error) {
+func Panic(err error, args ...interface{}) { With(WithCaller(1)).Panic(err, args...) }
+func (t options) Panic(err error, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -110,7 +108,7 @@ func (t xerrorOptions) Panic(err error) {
 }
 
 func PanicF(err error, msg string, args ...interface{}) { With(WithCaller(1)).PanicF(err, msg, args...) }
-func (t xerrorOptions) PanicF(err error, msg string, args ...interface{}) {
+func (t options) PanicF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -119,8 +117,8 @@ func (t xerrorOptions) PanicF(err error, msg string, args ...interface{}) {
 	panic(handle(err, t))
 }
 
-func Wrap(err error) error { return With(WithCaller(1)).Wrap(err) }
-func (t xerrorOptions) Wrap(err error) error {
+func Wrap(err error, args ...interface{}) error { return With(WithCaller(1)).Wrap(err, args...) }
+func (t options) Wrap(err error, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil
 	}
@@ -130,7 +128,7 @@ func (t xerrorOptions) Wrap(err error) error {
 func WrapF(err error, msg string, args ...interface{}) error {
 	return With(WithCaller(1)).WrapF(err, msg, args...)
 }
-func (t xerrorOptions) WrapF(err error, msg string, args ...interface{}) error {
+func (t options) WrapF(err error, msg string, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil
 	}
@@ -141,7 +139,7 @@ func (t xerrorOptions) WrapF(err error, msg string, args ...interface{}) error {
 
 // PanicErr
 func PanicErr(d1 interface{}, err error) interface{} { return With(WithCaller(1)).PanicErr(d1, err) }
-func (t xerrorOptions) PanicErr(d1 interface{}, err error) interface{} {
+func (t options) PanicErr(d1 interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return d1
 	}
@@ -149,7 +147,7 @@ func (t xerrorOptions) PanicErr(d1 interface{}, err error) interface{} {
 }
 
 func PanicBytes(d1 []byte, err error) []byte { return With(WithCaller(1)).PanicBytes(d1, err) }
-func (t xerrorOptions) PanicBytes(d1 []byte, err error) []byte {
+func (t options) PanicBytes(d1 []byte, err error) []byte {
 	if isErrNil(err) {
 		return d1
 	}
@@ -157,7 +155,7 @@ func (t xerrorOptions) PanicBytes(d1 []byte, err error) []byte {
 }
 
 func PanicStr(d1 string, err error) string { return With(WithCaller(1)).PanicStr(d1, err) }
-func (t xerrorOptions) PanicStr(d1 string, err error) string {
+func (t options) PanicStr(d1 string, err error) string {
 	if isErrNil(err) {
 		return d1
 	}
@@ -165,7 +163,7 @@ func (t xerrorOptions) PanicStr(d1 string, err error) string {
 }
 
 func PanicFile(d1 *os.File, err error) *os.File { return With(WithCaller(1)).PanicFile(d1, err) }
-func (t xerrorOptions) PanicFile(d1 *os.File, err error) *os.File {
+func (t options) PanicFile(d1 *os.File, err error) *os.File {
 	if isErrNil(err) {
 		return d1
 	}
@@ -175,15 +173,15 @@ func (t xerrorOptions) PanicFile(d1 *os.File, err error) *os.File {
 func PanicResponse(d1 *http.Response, err error) *http.Response {
 	return With(WithCaller(1)).PanicResponse(d1, err)
 }
-func (t xerrorOptions) PanicResponse(d1 *http.Response, err error) *http.Response {
+func (t options) PanicResponse(d1 *http.Response, err error) *http.Response {
 	if isErrNil(err) {
 		return d1
 	}
 	panic(handle(err, t))
 }
 
-func Exit(err error) { With(WithCaller(1)).Exit(err) }
-func (t xerrorOptions) Exit(err error) {
+func Exit(err error, args ...interface{}) { With(WithCaller(1)).Exit(err, args...) }
+func (t options) Exit(err error, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -195,7 +193,7 @@ func (t xerrorOptions) Exit(err error) {
 
 // ExitF
 func ExitF(err error, msg string, args ...interface{}) { Next().ExitF(err, msg, args...) }
-func (t xerrorOptions) ExitF(err error, msg string, args ...interface{}) {
+func (t options) ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -208,7 +206,7 @@ func (t xerrorOptions) ExitF(err error, msg string, args ...interface{}) {
 
 // ExitErr
 func ExitErr(dat interface{}, err error) interface{} { return With(WithCaller(1)).ExitErr(dat, err) }
-func (t xerrorOptions) ExitErr(dat interface{}, err error) interface{} {
+func (t options) ExitErr(dat interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return dat
 	}
@@ -221,10 +219,11 @@ func (t xerrorOptions) ExitErr(dat interface{}, err error) interface{} {
 
 // FamilyAs Assert if *err belongs to *target's family
 func FamilyAs(err error, target interface{}) bool { return With(WithCaller(1)).FamilyAs(err, target) }
-func (t xerrorOptions) FamilyAs(err error, target interface{}) bool {
+func (t options) FamilyAs(err error, target interface{}) bool {
 	if target == nil {
 		panic("errors: target cannot be nil")
 	}
+
 	val := reflect.ValueOf(target)
 	typ := val.Type()
 	if typ.Kind() != reflect.Ptr || val.IsNil() {

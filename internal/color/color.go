@@ -1,4 +1,4 @@
-package xerror_color
+package color
 
 import "fmt"
 

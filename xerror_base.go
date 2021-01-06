@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pubgo/xerror/xerror_envs"
+	"github.com/pubgo/xerror/xerror_core"
 	"github.com/pubgo/xerror/xerror_util"
 )
 
 func Fmt(format string, a ...interface{}) *xerrorBase {
 	xw := &xerrorBase{}
 	xw.Code = fmt.Sprintf(format, a...)
-	xw.Caller = xerror_util.CallerWithDepth(xerror_envs.CallDepthVal())
+	xw.Caller = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth)
 	return xw
 }
 
@@ -24,7 +24,7 @@ func New(code string, ms ...string) *xerrorBase {
 	xw := &xerrorBase{}
 	xw.Code = code
 	xw.Msg = msg
-	xw.Caller = xerror_util.CallerWithDepth(xerror_envs.CallDepthVal())
+	xw.Caller = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth)
 
 	return xw
 }
@@ -72,11 +72,11 @@ func (t *xerrorBase) New(code string, ms ...string) error {
 		msg = ms[0]
 	}
 
-	code = t.Code + xerror_envs.DelimiterVal() + code
+	code = t.Code + xerror_core.Conf.Delimiter + code
 	xw := &xerrorBase{}
 	xw.Code = code
 	xw.Msg = msg
-	xw.Caller = xerror_util.CallerWithDepth(xerror_envs.CallDepthVal())
+	xw.Caller = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth)
 
 	return xw
 }

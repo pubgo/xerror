@@ -1,7 +1,9 @@
 package xerror
 
+import "errors"
+
 var (
 	// ErrDone done
-	ErrDone = New("DONE")
-	ErrType = New("type error")
+	ErrDone = errors.New("DONE")
+	ErrType = errors.New("type error")
 )

@@ -5,28 +5,16 @@ import (
 	"log"
 	"reflect"
 	"runtime"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
-
-	"github.com/pubgo/xerror/xerror_envs"
 )
 
 type frame uintptr
 
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
-func CallerWithDepth(callDepths ...int) string {
-	if !xerror_envs.IsCallerVal() {
-		return ""
-	}
-
-	var cd = xerror_envs.CallDepthVal()
-	if len(callDepths) > 0 {
-		cd = callDepths[0]
-	}
-
+func CallerWithDepth(cd int) string {
 	var pcs = make([]uintptr, 1)
 	if runtime.Callers(cd, pcs[:]) == 0 {
 		return ""
@@ -205,10 +193,4 @@ func valueStr(values ...reflect.Value) string {
 		data = append(data, val)
 	}
 	return fmt.Sprint(data...)
-}
-
-func PrintDebug() {
-	if xerror_envs.PrintStackVal() {
-		debug.PrintStack()
-	}
 }

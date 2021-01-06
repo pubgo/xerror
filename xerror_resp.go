@@ -3,7 +3,6 @@ package xerror
 import (
 	"os"
 
-	"github.com/pubgo/xerror/xerror_envs"
 	"github.com/pubgo/xerror/xerror_util"
 )
 
@@ -14,16 +13,6 @@ func RespErr(err *error) {
 	}
 }
 
-func RespJson() {
-	var err error
-	handleRecover(&err, recover())
-	if isErrNil(err) {
-		return
-	}
-
-	p(handle(err, xerrorOptions{}).Stack(true))
-}
-
 func RespDebug() {
 	var err error
 	handleRecover(&err, recover())
@@ -31,8 +20,8 @@ func RespDebug() {
 		return
 	}
 
-	p(handle(err, xerrorOptions{}).p())
-	xerror_envs.PrintStackVal()
+	p(handle(err, options{}).p())
+	printStack()
 }
 
 func RespRaise(fn func(err XErr) error) {
@@ -63,7 +52,7 @@ func RespExit() {
 		return
 	}
 
-	p(handle(err, xerrorOptions{}).p())
-	xerror_envs.PrintStackVal()
+	p(handle(err, options{}).p())
+	printStack()
 	os.Exit(1)
 }
