@@ -8,12 +8,12 @@ import (
 )
 
 func TestRespNext(t *testing.T) {
-	defer xerror.RespDebug()
+	defer xerror.RespExit()
 	TestPanic1(t)
 }
 
 func TestPanic1(t *testing.T) {
-	defer xerror.RespExit()
+	//defer xerror.RespExit()
 	//defer xerror.RespRaise(func(err xerror.XErr) error {
 	//	return xerror.WrapF(err, "test raise")
 	//})
