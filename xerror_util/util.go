@@ -81,7 +81,7 @@ func FuncValue(fn interface{}) func(...reflect.Value) []reflect.Value {
 			log.Fatalf("the input params of func is not match, func: %s, numIn:%d numArgs:%d\n", tfn, numIn, len(args))
 		}
 
-		for i, k := range args {
+		for i := range args {
 			if i >= numIn {
 				if variadicType == nil {
 					log.Fatalf("[variadicType] should not be nil, args:%s, fn:%s", valueStr(args...), tfn)
@@ -91,7 +91,7 @@ func FuncValue(fn interface{}) func(...reflect.Value) []reflect.Value {
 				continue
 			}
 
-			if !k.IsValid() {
+			if !args[i].IsValid() {
 				args[i] = reflect.Zero(tfn.In(i))
 			}
 		}
@@ -185,10 +185,10 @@ func valuePut(v []reflect.Value) {
 
 func valueStr(values ...reflect.Value) string {
 	var data []interface{}
-	for _, dt := range values {
+	for i := range values {
 		var val interface{} = nil
-		if dt.IsValid() {
-			val = dt.Interface()
+		if values[i].IsValid() {
+			val = values[i].Interface()
 		}
 		data = append(data, val)
 	}
