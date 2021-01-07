@@ -110,14 +110,14 @@ func FuncRaw(fn interface{}) func(...interface{}) []reflect.Value {
 	vfn := FuncValue(fn)
 	return func(args ...interface{}) []reflect.Value {
 		var _args = valueGet()
-		for _, k := range args {
+		for i := range args {
 			var vk reflect.Value
-			if k == nil {
-				vk = reflect.ValueOf(k)
-			} else if k1, ok := k.(reflect.Value); ok {
+			if args[i] == nil {
+				vk = reflect.ValueOf(args[i])
+			} else if k1, ok := args[i].(reflect.Value); ok {
 				vk = k1
 			} else {
-				vk = reflect.ValueOf(k)
+				vk = reflect.ValueOf(args[i])
 			}
 			_args = append(_args, vk)
 		}
@@ -171,7 +171,7 @@ func Func(fn interface{}) func(...interface{}) func(...interface{}) {
 
 var valuePool = sync.Pool{
 	New: func() interface{} {
-		return []reflect.Value{}
+		return make([]reflect.Value, 0, 1)
 	},
 }
 
