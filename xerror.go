@@ -6,7 +6,10 @@ import (
 	"strings"
 
 	"github.com/pubgo/xerror/internal/color"
+	"github.com/pubgo/xerror/xerror_abc"
 )
+
+type XErr = xerror_abc.XErr
 
 type xerror struct {
 	Cause1 error  `json:"cause,omitempty"`
