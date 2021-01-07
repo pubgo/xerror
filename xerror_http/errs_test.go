@@ -2,6 +2,7 @@ package xerror_http
 
 import (
 	"fmt"
+	"github.com/pubgo/xerror/xerror_abc"
 	"log"
 	"testing"
 
@@ -26,7 +27,7 @@ func panicWrap(a ...interface{}) (err error) {
 }
 
 func TestCombine(t *testing.T) {
-	defer xerror.Resp(func(err xerror.XErr) {
+	defer xerror.Resp(func(err xerror_abc.XErr) {
 		fmt.Println(err.Stack(true))
 	})
 	//xerror.With().Panic(xerror.Combine(panicWrap(1, 2, 4, 5), panicWrap(1, 2, 4, 5)))
@@ -34,7 +35,7 @@ func TestCombine(t *testing.T) {
 }
 
 func TestStack(t *testing.T) {
-	defer xerror.Resp(func(err xerror.XErr) {
+	defer xerror.Resp(func(err xerror_abc.XErr) {
 		fmt.Println(err.Stack(true))
 	})
 	xerror.Exit(panicWrap(1, 2, 4, 5))

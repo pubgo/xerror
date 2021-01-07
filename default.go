@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+
+	"github.com/pubgo/xerror/xerror_abc"
 )
 
 type options struct {
@@ -15,7 +17,7 @@ type options struct {
 
 type Option func(t *options)
 
-func With(opts ...Option) XError {
+func With(opts ...Option) xerror_abc.XError {
 	var opt options
 
 	for _, o := range opts {
@@ -25,7 +27,7 @@ func With(opts ...Option) XError {
 	return opt
 }
 
-func Next() XError { return With(WithCaller(1)) }
+func Next() xerror_abc.XError { return With(WithCaller(1)) }
 
 func WithCaller(depth int) Option {
 	return func(t *options) {
@@ -71,8 +73,8 @@ func (t options) Combine(errs ...error) error {
 }
 
 // Parse parse error to xerror
-func Parse(err error) XErr { return With().Parse(err) }
-func (t options) Parse(err error) XErr {
+func Parse(err error) xerror_abc.XErr { return With().Parse(err) }
+func (t options) Parse(err error) xerror_abc.XErr {
 	if isErrNil(err) {
 		return nil
 	}

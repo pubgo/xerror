@@ -1,6 +1,7 @@
 package xerror
 
 import (
+	"github.com/pubgo/xerror/xerror_abc"
 	"os"
 
 	"github.com/pubgo/xerror/xerror_util"
@@ -24,7 +25,7 @@ func RespDebug() {
 	printStack()
 }
 
-func RespRaise(fn func(err XErr) error) {
+func RespRaise(fn func(err xerror_abc.XErr) error) {
 	var err error
 	handleRecover(&err, recover())
 	if isErrNil(err) {
@@ -35,7 +36,7 @@ func RespRaise(fn func(err XErr) error) {
 }
 
 // Resp
-func Resp(f func(err XErr)) {
+func Resp(f func(err xerror_abc.XErr)) {
 	var err error
 	handleRecover(&err, recover())
 	if isErrNil(err) {
