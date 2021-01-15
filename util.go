@@ -10,18 +10,18 @@ import (
 	"github.com/pubgo/xerror/xerror_util"
 )
 
-func handleRecover(err *error, err1 interface{}) {
-	if err1 == nil {
+func handleRecover(err *error, val interface{}) {
+	if val == nil {
 		return
 	}
 
-	switch err1 := err1.(type) {
+	switch val := val.(type) {
 	case error:
-		*err = err1
+		*err = val
 	case string:
-		*err = errors.New(err1)
+		*err = errors.New(val)
 	default:
-		*err = WrapF(ErrType, fmt.Sprintf("%#v", err1))
+		*err = WrapF(ErrType, fmt.Sprintf("%#v", val))
 	}
 }
 
@@ -77,7 +77,9 @@ func Unwrap(err error) error {
 
 func p(a ...interface{}) { _, _ = fmt.Fprintln(os.Stderr, a...) }
 func printStack() {
-	if xerror_core.Conf.PrintStack {
-		debug.PrintStack()
+	if !xerror_core.Conf.PrintStack {
+		return
 	}
+
+	debug.PrintStack()
 }

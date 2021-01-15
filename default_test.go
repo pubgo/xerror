@@ -8,7 +8,7 @@ import (
 )
 
 func TestRespNext(t *testing.T) {
-	defer xerror.RespExit()
+	defer xerror.RespExit("TestRespNext")
 	TestPanic1(t)
 }
 

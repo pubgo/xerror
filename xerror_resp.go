@@ -1,6 +1,7 @@
 package xerror
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/pubgo/xerror/xerror_abc"
@@ -14,14 +15,14 @@ func RespErr(err *error) {
 	}
 }
 
-func RespDebug() {
+func RespDebug(format string, args ...interface{}) {
 	var err error
 	handleRecover(&err, recover())
 	if isErrNil(err) {
 		return
 	}
 
-	p(handle(err, options{}).p())
+	p(handle(err, options{msg: fmt.Sprintf(format, args...)}).p())
 	printStack()
 }
 
@@ -32,28 +33,33 @@ func RespRaise(fn func(err xerror_abc.XErr) error) {
 		return
 	}
 
-	panic(fn(&xerror{Cause1: err, Caller: xerror_util.CallerWithFunc(fn)}))
+	err1 := &xerror{Cause1: err, Caller: xerror_util.CallerWithFunc(fn)}
+	if fn == nil {
+		panic(err1)
+	}
+	panic(fn(err1))
 }
 
 // Resp
-func Resp(f func(err xerror_abc.XErr)) {
+func Resp(fn func(err xerror_abc.XErr)) {
 	var err error
 	handleRecover(&err, recover())
 	if isErrNil(err) {
 		return
 	}
 
-	f(&xerror{Cause1: err, Caller: xerror_util.CallerWithFunc(f)})
+	Assert(fn == nil, "[fn] should not be nil")
+	fn(&xerror{Cause1: err, Caller: xerror_util.CallerWithFunc(fn)})
 }
 
-func RespExit() {
+func RespExit(args ...interface{}) {
 	var err error
 	handleRecover(&err, recover())
 	if isErrNil(err) {
 		return
 	}
 
-	p(handle(err, options{}).p())
+	p(handle(err, options{msg: fmt.Sprint(args...)}).p())
 	printStack()
 	os.Exit(1)
 }

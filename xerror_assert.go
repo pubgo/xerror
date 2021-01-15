@@ -1,40 +1,27 @@
 package xerror
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
-
-	"github.com/pubgo/xerror/xerror_util"
 )
 
-func AssertNil(val interface{}, a ...interface{}) {
-	if val == nil || reflect.ValueOf(val).IsZero() {
-		Next().Panic(errors.New(handleArgs(a...)))
-	}
-}
-
-func Assert(valid bool, a ...interface{}) {
-	if !valid {
+func AssertNil(val interface{}, format string, a ...interface{}) {
+	if val != nil && !reflect.ValueOf(val).IsNil() {
 		return
 	}
-
-	Next().Panic(errors.New(handleArgs(a...)))
+	Next().Panic(fmt.Errorf(format, a...))
 }
 
-func handleArgs(a ...interface{}) string {
-	if len(a) == 0 {
-		return ""
+func Assert(b bool, format string, a ...interface{}) {
+	if !b {
+		return
 	}
+	Next().Panic(fmt.Errorf(format, a...))
+}
 
-	switch reflect.TypeOf(a[0]).Kind() {
-	case reflect.Func:
-		var ret string
-		xerror_util.Func(a[0])(a[1:]...)(func(s string) { ret = s })
-		return ret
-	case reflect.String:
-		return fmt.Sprintf(a[0].(string), a[1:]...)
-	default:
-		panic("[a] type error")
+func If(a bool, b interface{}, c interface{}) interface{} {
+	if a {
+		return b
 	}
+	return c
 }
