@@ -17,12 +17,9 @@ type xerror struct {
 	Caller string `json:"caller,omitempty"`
 }
 
-func (t *xerror) Wrap(err error) error { return With(WithCaller(1)).Wrap(err) }
-func (t *xerror) WrapF(err error, msg string, args ...interface{}) error {
-	return With(WithCaller(1)).WrapF(err, msg, args...)
-}
-
-func (t *xerror) Unwrap() error { return t.Cause() }
+func (t *xerror) Wrap(args ...interface{}) error              { return Next().Wrap(t, args...) }
+func (t *xerror) WrapF(msg string, args ...interface{}) error { return Next().WrapF(t, msg, args...) }
+func (t *xerror) Unwrap() error                               { return t.Cause() }
 func (t *xerror) Cause() error {
 	if t == nil {
 		return nil

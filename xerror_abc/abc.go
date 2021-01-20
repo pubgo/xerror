@@ -6,11 +6,14 @@ import (
 )
 
 type XErr interface {
-	error
+	Error() string
 	Stack(indent ...bool) string
 	String() string
-	Wrap(err error) error
-	WrapF(err error, msg string, args ...interface{}) error
+	Unwrap() error
+	Cause() error
+	Is(err error) bool
+	Wrap(args ...interface{}) error
+	WrapF(msg string, args ...interface{}) error
 }
 
 type XError interface {

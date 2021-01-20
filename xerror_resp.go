@@ -15,14 +15,14 @@ func RespErr(err *error) {
 	}
 }
 
-func RespDebug(format string, args ...interface{}) {
+func RespDebug(args ...interface{}) {
 	var err error
 	handleRecover(&err, recover())
 	if isErrNil(err) {
 		return
 	}
 
-	p(handle(err, options{msg: fmt.Sprintf(format, args...)}).p())
+	p(handle(err, options{msg: fmt.Sprint(args...)}).p())
 	printStack()
 }
 
