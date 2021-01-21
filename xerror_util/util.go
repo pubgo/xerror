@@ -2,7 +2,6 @@ package xerror_util
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"runtime"
 	"strconv"
