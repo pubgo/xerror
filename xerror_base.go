@@ -35,10 +35,8 @@ type xerrorBase struct {
 	Caller string `json:"caller,omitempty"`
 }
 
-func (t *xerrorBase) Error() string {
-	return t.Code
-}
-
+func (t *xerrorBase) FamilyAs(err interface{}) bool { return t.As(err) }
+func (t *xerrorBase) Error() string                 { return t.Code }
 func (t *xerrorBase) As(err interface{}) bool {
 	if t == nil || err == nil {
 		return false
@@ -60,10 +58,6 @@ func (t *xerrorBase) As(err interface{}) bool {
 	default:
 		return false
 	}
-}
-
-func (t *xerrorBase) FamilyAs(err interface{}) bool {
-	return t.As(err)
 }
 
 func (t *xerrorBase) New(code string, ms ...string) error {

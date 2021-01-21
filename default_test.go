@@ -18,12 +18,13 @@ func TestPanic1(t *testing.T) {
 	//	return xerror.WrapF(err, "test raise")
 	//})
 
-	xerror.Panic(xerror.New("ok"))
+	//xerror.Panic(xerror.New("ok"))
+	xerror.Panic(fmt.Errorf("ss"))
 }
 
 func init1Next() (err error) {
 	defer xerror.RespErr(&err)
-	xerror.Next().Panic(fmt.Errorf("test next"))
+	xerror.Panic(fmt.Errorf("test next"))
 	return nil
 }
 

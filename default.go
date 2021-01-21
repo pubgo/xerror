@@ -27,8 +27,6 @@ func With(opts ...Option) xerror_abc.XError {
 	return opt
 }
 
-func Next() xerror_abc.XError { return With(WithCaller(1)) }
-
 func WithCaller(depth int) Option {
 	return func(t *options) {
 		t.depth = depth
@@ -51,7 +49,7 @@ func (t options) Next() options {
 }
 
 // Combine combine multiple errors
-func Combine(errs ...error) error { return Next().Combine(errs...) }
+func Combine(errs ...error) error { return With().Combine(errs...) }
 func (t options) Combine(errs ...error) error {
 	if len(errs) == 0 {
 		return nil
@@ -82,7 +80,7 @@ func (t options) Parse(err error) xerror_abc.XErr {
 	return handle(err, t)
 }
 
-func Try(fn func()) (err error) { return Next().Try(fn) }
+func Try(fn func()) (err error) { return With().Try(fn) }
 func (t options) Try(fn func()) (err error) {
 	if fn == nil {
 		return New("the [fn] parameters should not be nil")
@@ -93,10 +91,10 @@ func (t options) Try(fn func()) (err error) {
 	return
 }
 
-func Done()             { Next().Done() }
+func Done()             { With().Done() }
 func (t options) Done() { panic(ErrDone) }
 
-func Panic(err error, args ...interface{}) { Next().Panic(err, args...) }
+func Panic(err error, args ...interface{}) { With().Panic(err, args...) }
 func (t options) Panic(err error, args ...interface{}) {
 	if isErrNil(err) {
 		return
@@ -106,7 +104,7 @@ func (t options) Panic(err error, args ...interface{}) {
 	panic(handle(err, t))
 }
 
-func PanicF(err error, msg string, args ...interface{}) { Next().PanicF(err, msg, args...) }
+func PanicF(err error, msg string, args ...interface{}) { With().PanicF(err, msg, args...) }
 func (t options) PanicF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
@@ -116,7 +114,7 @@ func (t options) PanicF(err error, msg string, args ...interface{}) {
 	panic(handle(err, t))
 }
 
-func Wrap(err error, args ...interface{}) error { return Next().Wrap(err, args...) }
+func Wrap(err error, args ...interface{}) error { return With().Wrap(err, args...) }
 func (t options) Wrap(err error, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil
@@ -126,7 +124,7 @@ func (t options) Wrap(err error, args ...interface{}) error {
 	return handle(err, t)
 }
 
-func WrapF(err error, msg string, args ...interface{}) error { return Next().WrapF(err, msg, args...) }
+func WrapF(err error, msg string, args ...interface{}) error { return With().WrapF(err, msg, args...) }
 func (t options) WrapF(err error, msg string, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil
@@ -137,7 +135,7 @@ func (t options) WrapF(err error, msg string, args ...interface{}) error {
 }
 
 // PanicErr
-func PanicErr(d1 interface{}, err error) interface{} { return Next().PanicErr(d1, err) }
+func PanicErr(d1 interface{}, err error) interface{} { return With().PanicErr(d1, err) }
 func (t options) PanicErr(d1 interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return d1
@@ -145,7 +143,7 @@ func (t options) PanicErr(d1 interface{}, err error) interface{} {
 	panic(handle(err, t))
 }
 
-func PanicBytes(d1 []byte, err error) []byte { return Next().PanicBytes(d1, err) }
+func PanicBytes(d1 []byte, err error) []byte { return With().PanicBytes(d1, err) }
 func (t options) PanicBytes(d1 []byte, err error) []byte {
 	if isErrNil(err) {
 		return d1
@@ -153,7 +151,7 @@ func (t options) PanicBytes(d1 []byte, err error) []byte {
 	panic(handle(err, t))
 }
 
-func PanicStr(d1 string, err error) string { return Next().PanicStr(d1, err) }
+func PanicStr(d1 string, err error) string { return With().PanicStr(d1, err) }
 func (t options) PanicStr(d1 string, err error) string {
 	if isErrNil(err) {
 		return d1
@@ -161,7 +159,7 @@ func (t options) PanicStr(d1 string, err error) string {
 	panic(handle(err, t))
 }
 
-func PanicFile(d1 *os.File, err error) *os.File { return Next().PanicFile(d1, err) }
+func PanicFile(d1 *os.File, err error) *os.File { return With().PanicFile(d1, err) }
 func (t options) PanicFile(d1 *os.File, err error) *os.File {
 	if isErrNil(err) {
 		return d1
@@ -169,7 +167,7 @@ func (t options) PanicFile(d1 *os.File, err error) *os.File {
 	panic(handle(err, t))
 }
 
-func PanicResponse(d1 *http.Response, err error) *http.Response { return Next().PanicResponse(d1, err) }
+func PanicResponse(d1 *http.Response, err error) *http.Response { return With().PanicResponse(d1, err) }
 func (t options) PanicResponse(d1 *http.Response, err error) *http.Response {
 	if isErrNil(err) {
 		return d1
@@ -177,7 +175,7 @@ func (t options) PanicResponse(d1 *http.Response, err error) *http.Response {
 	panic(handle(err, t))
 }
 
-func Exit(err error, args ...interface{}) { Next().Exit(err, args...) }
+func Exit(err error, args ...interface{}) { With().Exit(err, args...) }
 func (t options) Exit(err error, args ...interface{}) {
 	if isErrNil(err) {
 		return
@@ -190,7 +188,7 @@ func (t options) Exit(err error, args ...interface{}) {
 }
 
 // ExitF
-func ExitF(err error, msg string, args ...interface{}) { Next().ExitF(err, msg, args...) }
+func ExitF(err error, msg string, args ...interface{}) { With().ExitF(err, msg, args...) }
 func (t options) ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
@@ -203,7 +201,7 @@ func (t options) ExitF(err error, msg string, args ...interface{}) {
 }
 
 // ExitErr
-func ExitErr(dat interface{}, err error) interface{} { return Next().ExitErr(dat, err) }
+func ExitErr(dat interface{}, err error) interface{} { return With().ExitErr(dat, err) }
 func (t options) ExitErr(dat interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return dat
@@ -215,8 +213,10 @@ func (t options) ExitErr(dat interface{}, err error) interface{} {
 	return nil
 }
 
+func As(err error, target interface{}) bool { return With().FamilyAs(err, target) }
+
 // FamilyAs Assert if *err belongs to *target's family
-func FamilyAs(err error, target interface{}) bool { return Next().FamilyAs(err, target) }
+func FamilyAs(err error, target interface{}) bool { return With().FamilyAs(err, target) }
 func (t options) FamilyAs(err error, target interface{}) bool {
 	if target == nil {
 		panic("errors: target cannot be nil")

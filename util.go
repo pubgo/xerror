@@ -28,7 +28,8 @@ func handleRecover(err *error, val interface{}) {
 func handle(err error, opts options) *xerror {
 	err2 := &xerror{}
 	err2.Msg = opts.msg
-	err2.Caller = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 1 + opts.depth)
+	err2.Caller[0] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 2 + opts.depth)
+	err2.Caller[1] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 3 + opts.depth)
 	switch err := err.(type) {
 	case *xerrorBase, *xerror, *combine, error:
 		err2.Cause1 = err
@@ -52,7 +53,7 @@ func trans(err error) []*xerror {
 	case *xerrorBase:
 		return []*xerror{{
 			Msg:    err.Msg,
-			Caller: err.Caller,
+			Caller: [2]string{err.Caller},
 		}}
 	case *xerror:
 		return []*xerror{err}

@@ -33,7 +33,7 @@ func RespRaise(fn func(err xerror_abc.XErr) error) {
 		return
 	}
 
-	err1 := &xerror{Cause1: err, Caller: xerror_util.CallerWithFunc(fn)}
+	err1 := &xerror{Cause1: err, Caller: [2]string{xerror_util.CallerWithFunc(fn)}}
 	if fn == nil {
 		panic(err1)
 	}
@@ -49,7 +49,7 @@ func Resp(fn func(err xerror_abc.XErr)) {
 	}
 
 	Assert(fn == nil, "[fn] should not be nil")
-	fn(&xerror{Cause1: err, Caller: xerror_util.CallerWithFunc(fn)})
+	fn(&xerror{Cause1: err, Caller: [2]string{xerror_util.CallerWithFunc(fn)}})
 }
 
 func RespExit(args ...interface{}) {
