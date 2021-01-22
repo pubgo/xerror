@@ -9,7 +9,7 @@ type XErr interface {
 	Error() string
 	Stack(indent ...bool) string
 	String() string
-	Print()
+	Print(args ...interface{})
 	Unwrap() error
 	Cause() error
 	Is(err error) bool
