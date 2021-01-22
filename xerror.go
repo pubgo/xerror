@@ -16,6 +16,7 @@ type xerror struct {
 	Caller [2]string `json:"caller,omitempty"`
 }
 
+func (t *xerror) Print(args ...interface{})                   { p(handle(t, options{msg: fmt.Sprint(args...)}).p()) }
 func (t *xerror) Wrap(args ...interface{}) error              { return With().Wrap(t, args...) }
 func (t *xerror) WrapF(msg string, args ...interface{}) error { return With().WrapF(t, msg, args...) }
 func (t *xerror) Unwrap() error                               { return t.Cause() }
