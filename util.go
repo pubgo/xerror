@@ -4,52 +4,44 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime/debug"
 
-	"github.com/pubgo/xerror/internal/wrapper"
+	"github.com/pubgo/xerror/xerror_core"
 	"github.com/pubgo/xerror/xerror_util"
 )
 
-func handleErr(err *error, _err interface{}) {
-	if _err == nil {
+func handleRecover(err *error, val interface{}) {
+	if val == nil {
 		return
 	}
 
-	switch _err := _err.(type) {
+	switch val := val.(type) {
 	case error:
-		*err = _err
+		*err = val
 	case string:
-		*err = errors.New(_err)
+		*err = errors.New(val)
 	default:
-		*err = WrapF(ErrUnknownType, fmt.Sprintf("%+v", _err))
+		*err = WrapF(ErrType, fmt.Sprintf("%#v", val))
 	}
 }
 
-func handle(err error, msg string, args ...interface{}) *xerror {
-	if len(args) > 0 {
-		msg = fmt.Sprintf(msg, args...)
-	}
-
+func handle(err error, opts options) *xerror {
 	err2 := &xerror{}
-	err2.Msg = msg
-	err2.Caller = xerror_util.CallerWithDepth(wrapper.CallDepth() + 1)
-	switch e := err.(type) {
-	case *xerrorBase:
-		err2.Cause1 = e
-	case *xerror:
-		err2.Cause1 = e
-	case *xerrorCombine:
-		err2.Cause1 = e
-	case error:
-		err2.Cause1 = &xerrorBase{Code: unwrap(e).Error(), Msg: fmt.Sprintf("%+v", e)}
+	err2.Msg = opts.msg
+	err2.Caller[0] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 2 + opts.depth)
+	err2.Caller[1] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 3 + opts.depth)
+	switch err := err.(type) {
+	case *xerrorBase, *xerror, *combine, error:
+		err2.Cause1 = err
 	default:
-		err2.Cause1 = &xerrorBase{Code: ErrUnknownType.Error(), Msg: fmt.Sprintf("%+v", e)}
+		err2.Cause1 = WrapF(ErrType, fmt.Sprintf("%#v", err))
 	}
 
 	return err2
 }
 
 func isErrNil(err error) bool {
-	return err == nil || err == ErrDone
+	return err == nil || err == ErrDone || Unwrap(err) == ErrDone
 }
 
 func trans(err error) []*xerror {
@@ -61,18 +53,18 @@ func trans(err error) []*xerror {
 	case *xerrorBase:
 		return []*xerror{{
 			Msg:    err.Msg,
-			Caller: err.Caller,
+			Caller: [2]string{err.Caller},
 		}}
 	case *xerror:
 		return []*xerror{err}
-	case *xerrorCombine:
+	case *combine:
 		return *err
 	default:
 		return nil
 	}
 }
 
-func unwrap(err error) error {
+func Unwrap(err error) error {
 	for {
 		u, ok := err.(interface {
 			Unwrap() error
@@ -84,6 +76,11 @@ func unwrap(err error) error {
 	}
 }
 
-func p(a ...interface{}) {
-	_, _ = os.Stderr.WriteString(fmt.Sprintln(a...))
+func p(a ...interface{}) { _, _ = fmt.Fprintln(os.Stderr, a...) }
+func printStack() {
+	if !xerror_core.Conf.PrintStack {
+		return
+	}
+
+	debug.PrintStack()
 }
