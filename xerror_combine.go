@@ -1,21 +1,25 @@
 package xerror
 
-import "strings"
+import (
+	"strings"
+)
 
 type combine []*xerror
 
 func (t combine) String() string {
-	var result []string
+	var b strings.Builder
 	for i := range t {
-		result = append(result, "["+(t)[i].String()+"]")
+		b.WriteString(t[i].String())
+		b.WriteString("\n")
 	}
-	return strings.Join(result, ", ")
+	return b.String()
 }
 
 func (t combine) Error() string {
-	var result []string
+	var b strings.Builder
 	for i := range t {
-		result = append(result, "["+(t)[i].Error()+"]")
+		b.WriteString(t[i].Error())
+		b.WriteString("\n")
 	}
-	return strings.Join(result, ", ")
+	return b.String()
 }
