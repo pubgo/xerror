@@ -8,6 +8,7 @@ type combine []*xerror
 
 func (t combine) String() string {
 	var b strings.Builder
+	defer b.Reset()
 	for i := range t {
 		b.WriteString(t[i].String())
 		b.WriteString("\n")
@@ -17,6 +18,7 @@ func (t combine) String() string {
 
 func (t combine) Error() string {
 	var b strings.Builder
+	defer b.Reset()
 	for i := range t {
 		b.WriteString(t[i].Error())
 		b.WriteString("\n")

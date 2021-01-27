@@ -25,11 +25,10 @@ func handleRecover(err *error, val interface{}) {
 	}
 }
 
-func handle(err error, opts options) *xerror {
+func handle(err error, fns ...func(err *xerror)) *xerror {
 	err2 := &xerror{}
-	err2.Msg = opts.msg
-	err2.Caller[0] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 2 + opts.depth)
-	err2.Caller[1] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 3 + opts.depth)
+	err2.Caller[0] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 2)
+	err2.Caller[1] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 3)
 	switch err := err.(type) {
 	case *xerrorBase, *xerror, *combine, error:
 		err2.Cause1 = err
@@ -37,11 +36,27 @@ func handle(err error, opts options) *xerror {
 		err2.Cause1 = WrapF(ErrType, fmt.Sprintf("%#v", err))
 	}
 
+	if len(fns) > 0 {
+		fns[0](err2)
+	}
+
 	return err2
 }
 
 func isErrNil(err error) bool {
-	return err == nil || err == ErrDone || Unwrap(err) == ErrDone
+	if err == nil {
+		return true
+	}
+
+	if err == ErrDone {
+		return true
+	}
+
+	if Unwrap(err) == ErrDone {
+		return true
+	}
+
+	return false
 }
 
 func trans(err error) []*xerror {
@@ -66,12 +81,11 @@ func trans(err error) []*xerror {
 
 func Unwrap(err error) error {
 	for {
-		u, ok := err.(interface {
-			Unwrap() error
-		})
+		u, ok := err.(interface{ Unwrap() error })
 		if !ok {
 			return err
 		}
+
 		err = u.Unwrap()
 	}
 }

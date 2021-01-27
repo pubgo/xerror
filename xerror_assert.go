@@ -24,5 +24,6 @@ func If(a bool, b interface{}, c interface{}) interface{} {
 	if a {
 		return b
 	}
+
 	return c
 }

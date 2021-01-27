@@ -16,9 +16,11 @@ type xerror struct {
 	Caller [2]string `json:"caller,omitempty"`
 }
 
-func (t *xerror) Print(args ...interface{})                   { p(handle(t, options{msg: fmt.Sprint(args...)}).p()) }
-func (t *xerror) Wrap(args ...interface{}) error              { return With().Wrap(t, args...) }
-func (t *xerror) WrapF(msg string, args ...interface{}) error { return With().WrapF(t, msg, args...) }
+func (t *xerror) String() string                              { return t.Stack() }
+func (t *xerror) As(val interface{}) bool                     { return As(t, val) }
+func (t *xerror) Print(args ...interface{})                   { p(handle(Wrap(t, args...)).stackString()) }
+func (t *xerror) Wrap(args ...interface{}) error              { return Wrap(t, args...) }
+func (t *xerror) WrapF(msg string, args ...interface{}) error { return WrapF(t, msg, args...) }
 func (t *xerror) Unwrap() error                               { return t.Cause() }
 func (t *xerror) Cause() error {
 	if t == nil {
@@ -48,7 +50,7 @@ func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	}
 }
 
-func (t *xerror) p() string {
+func (t *xerror) stackString() string {
 	if t == nil || t.Cause1 == nil {
 		return ""
 	}
@@ -127,8 +129,4 @@ func (t *xerror) Error() string {
 	}
 
 	return t.Cause1.Error()
-}
-
-func (t *xerror) String() string {
-	return t.Stack()
 }
