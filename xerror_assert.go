@@ -9,15 +9,15 @@ func Assert(b bool, format string, a ...interface{}) {
 		return
 	}
 
-	Panic(fmt.Errorf(format, a...))
+	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fmt.Sprintf(format, a...) }))
 }
 
-func AssertFn(b bool, fn func() error) {
+func AssertFn(b bool, fn func() string) {
 	if !b {
 		return
 	}
 
-	Panic(fn())
+	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fn() }))
 }
 
 func If(a bool, b interface{}, c interface{}) interface{} {

@@ -14,9 +14,9 @@ func TestRespNext(t *testing.T) {
 
 func TestPanic1(t *testing.T) {
 	//defer xerror.RespExit()
-	//defer xerror.RespRaise(func(err xerror.XErr) error {
-	//	return xerror.WrapF(err, "test raise")
-	//})
+	defer xerror.RespRaise(func(err xerror.XErr) error {
+		return xerror.WrapF(err, "test raise")
+	})
 
 	//xerror.Panic(xerror.New("ok"))
 	xerror.Panic(fmt.Errorf("ss"))

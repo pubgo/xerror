@@ -4,7 +4,7 @@ import "errors"
 
 var (
 	// ErrDone done
-	ErrDone    = errors.New("DONE")
-	ErrType    = errors.New("type error")
-	ErrUnknown = errors.New("unknown error")
+	ErrDone   = errors.New("[xerror] done")
+	ErrType   = errors.New("[xerror] type not match")
+	ErrAssert = errors.New("[xerror] assert true")
 )

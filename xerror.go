@@ -3,6 +3,7 @@ package xerror
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/pubgo/xerror/internal/color"
@@ -11,29 +12,27 @@ import (
 
 type XErr = xerror_abc.XErr
 type xerror struct {
-	Cause1 error     `json:"cause,omitempty"`
+	Err    error     `json:"cause,omitempty"`
 	Msg    string    `json:"msg,omitempty"`
 	Caller [2]string `json:"caller,omitempty"`
 }
 
-func (t *xerror) String() string                              { return t.Stack() }
-func (t *xerror) As(val interface{}) bool                     { return As(t, val) }
-func (t *xerror) Print(args ...interface{})                   { p(handle(Wrap(t, args...)).stackString()) }
-func (t *xerror) Wrap(args ...interface{}) error              { return Wrap(t, args...) }
-func (t *xerror) WrapF(msg string, args ...interface{}) error { return WrapF(t, msg, args...) }
-func (t *xerror) Unwrap() error                               { return t.Cause() }
-func (t *xerror) Cause() error {
-	if t == nil {
-		return nil
-	}
+func (t *xerror) String() string            { return t.Stack() }
+func (t *xerror) Debug(args ...interface{}) { p(handle(Wrap(t, args...)).stackString()) }
+func (t *xerror) Unwrap() error             { return t.Err }
+func (t *xerror) Cause() error              { return t.Err }
+func (t *xerror) Wrap(args ...interface{}) error {
+	return handle(t, func(err *xerror) { err.Msg = fmt.Sprint(args...) })
+}
 
-	return t.Cause1
+func (t *xerror) WrapF(msg string, args ...interface{}) error {
+	return handle(t, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) })
 }
 
 func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	buf.WriteString("========================================================================================================================\n")
-	if xrr.Cause1 != nil {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Red.P("Err"), xrr.Cause1.Error()))
+	if xrr.Err != nil {
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Red.P("Err"), xrr.Err.Error()))
 	}
 	if strings.TrimSpace(xrr.Msg) != "" {
 		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Green.P("Msg"), xrr.Msg))
@@ -43,7 +42,7 @@ func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 		buf.WriteString(fmt.Sprintf("%s]: %s\n", color.Yellow.P("Caller"), xrr.Caller[i]))
 	}
 
-	if errs := trans(xrr.Cause1); errs != nil {
+	if errs := trans(xrr.Err); errs != nil {
 		for i := range errs {
 			t._p(buf, errs[i])
 		}
@@ -51,7 +50,7 @@ func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 }
 
 func (t *xerror) stackString() string {
-	if t == nil || t.Cause1 == nil {
+	if t == nil || t.Err == nil {
 		return ""
 	}
 
@@ -65,17 +64,17 @@ func (t *xerror) stackString() string {
 }
 
 func (t *xerror) Is(err error) bool {
-	if t == nil || t.Cause1 == nil || err == nil {
+	if t == nil || t.Err == nil || err == nil {
 		return false
 	}
 
 	switch err := err.(type) {
 	case *xerrorBase:
-		return err == t.Cause1
+		return err == t.Err
 	case *xerror:
-		return err == t || err.Cause1 == t.Cause1
+		return err == t || err.Err == t.Err
 	case error:
-		return t.Cause1 == err
+		return t.Err == err
 	default:
 		return false
 	}
@@ -104,7 +103,7 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 }
 
 func (t *xerror) Stack(indent ...bool) string {
-	if t == nil || t.Cause1 == nil || t.Cause1 == ErrDone {
+	if t == nil || t.Err == nil || t.Err == ErrDone {
 		return ""
 	}
 
@@ -122,11 +121,20 @@ func (t *xerror) Stack(indent ...bool) string {
 	return string(dt)
 }
 
+func (t *xerror) As(target interface{}) bool {
+	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
+	if err, ok := t1.(*xerror); ok {
+		reflect.ValueOf(target).Elem().Set(reflect.ValueOf(err))
+		return true
+	}
+	return false
+}
+
 // Error
 func (t *xerror) Error() string {
-	if t == nil || isErrNil(t.Cause1) {
+	if t == nil || isErrNil(t.Err) {
 		return ""
 	}
 
-	return t.Cause1.Error()
+	return t.Err.Error()
 }

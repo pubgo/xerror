@@ -3,9 +3,7 @@ package xerror_abc
 type XErr interface {
 	Error() string
 	Stack(indent ...bool) string
-	String() string
-	Print(args ...interface{})
-	Unwrap() error
+	Debug(args ...interface{})
 	Cause() error
 	Is(err error) bool
 	As(val interface{}) bool

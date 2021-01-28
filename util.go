@@ -6,34 +6,30 @@ import (
 	"os"
 	"runtime/debug"
 
+	"github.com/pubgo/xerror/internal/utils"
 	"github.com/pubgo/xerror/xerror_core"
-	"github.com/pubgo/xerror/xerror_util"
 )
 
 func handleRecover(err *error, val interface{}) {
-	if val == nil {
-		return
-	}
-
 	switch val := val.(type) {
 	case error:
 		*err = val
 	case string:
 		*err = errors.New(val)
 	default:
-		*err = WrapF(ErrType, fmt.Sprintf("%#v", val))
+		*err = fmt.Errorf("%#v\n", val)
 	}
 }
 
 func handle(err error, fns ...func(err *xerror)) *xerror {
 	err2 := &xerror{}
-	err2.Caller[0] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 2)
-	err2.Caller[1] = xerror_util.CallerWithDepth(xerror_core.Conf.CallDepth + 3)
+	err2.Caller[0] = utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2)
+	err2.Caller[1] = utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3)
 	switch err := err.(type) {
 	case *xerrorBase, *xerror, *combine, error:
-		err2.Cause1 = err
+		err2.Err = err
 	default:
-		err2.Cause1 = WrapF(ErrType, fmt.Sprintf("%#v", err))
+		err2.Err = WrapF(ErrType, fmt.Sprintf("%#v", err))
 	}
 
 	if len(fns) > 0 {
@@ -52,7 +48,7 @@ func isErrNil(err error) bool {
 		return true
 	}
 
-	if Unwrap(err) == ErrDone {
+	if Is(err, ErrDone) {
 		return true
 	}
 
@@ -76,17 +72,6 @@ func trans(err error) []*xerror {
 		return *err
 	default:
 		return nil
-	}
-}
-
-func Unwrap(err error) error {
-	for {
-		u, ok := err.(interface{ Unwrap() error })
-		if !ok {
-			return err
-		}
-
-		err = u.Unwrap()
 	}
 }
 

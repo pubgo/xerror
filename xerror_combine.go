@@ -6,21 +6,21 @@ import (
 
 type combine []*xerror
 
-func (t combine) String() string {
+func (errs combine) String() string {
 	var b strings.Builder
 	defer b.Reset()
-	for i := range t {
-		b.WriteString(t[i].String())
+	for i := range errs {
+		b.WriteString(errs[i].String())
 		b.WriteString("\n")
 	}
 	return b.String()
 }
 
-func (t combine) Error() string {
+func (errs combine) Error() string {
 	var b strings.Builder
 	defer b.Reset()
-	for i := range t {
-		b.WriteString(t[i].Error())
+	for i := range errs {
+		b.WriteString(errs[i].Error())
 		b.WriteString("\n")
 	}
 	return b.String()

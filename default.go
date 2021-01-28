@@ -9,8 +9,8 @@ import (
 	"github.com/pubgo/xerror/xerror_abc"
 )
 
-// PanicCombine combine multiple errors
-func PanicCombine(errs ...error) {
+// PanicErrs combine multiple errors
+func PanicErrs(errs ...error) {
 	if len(errs) == 0 {
 		return
 	}
@@ -38,6 +38,21 @@ func Parse(err error) xerror_abc.XErr {
 	}
 
 	return handle(err)
+}
+
+func IsXErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	switch err.(type) {
+	case *xerrorBase:
+		return true
+	case *xerror:
+		return true
+	default:
+		return false
+	}
 }
 
 func Try(fn func()) (err error) {
@@ -140,24 +155,53 @@ func ExitErr(dat interface{}, err error) interface{} {
 	return nil
 }
 
-func As(err error, target interface{}) bool { return FamilyAs(err, target) }
+func Is(err, target error) bool { return errors.Is(err, target) }
+func Unwrap(err error) error    { return errors.Unwrap(err) }
 
-// FamilyAs Assert if *err belongs to *target's family
-func FamilyAs(err error, target interface{}) bool {
-	if target == nil {
-		panic("errors: target cannot be nil")
+var xerrorTyp = reflect.TypeOf(&xerror{})
+var xerrorBaseTyp = reflect.TypeOf(&xerrorBase{})
+
+func As(err error, target interface{}) bool {
+	if target == nil || err == nil {
+		return false
 	}
 
 	val := reflect.ValueOf(target)
 	typ := val.Type()
+
+	// target must be a non-nil pointer
 	if typ.Kind() != reflect.Ptr || val.IsNil() {
-		panic("errors: target must be a non-nil pointer")
+		return false
 	}
-	for err != nil {
-		if x, ok := err.(interface{ FamilyAs(interface{}) bool }); ok && x.FamilyAs(target) {
+
+	// *target must be interface or implement error
+	if e := typ.Elem(); e.Kind() != reflect.Interface && !e.Implements(reflect.TypeOf((*error)(nil)).Elem()) {
+		return false
+	}
+
+	errType := reflect.TypeOf(err)
+	for {
+		if errType != xerrorTyp && errType != xerrorBaseTyp && reflect.TypeOf(err).AssignableTo(typ.Elem()) {
+			val.Elem().Set(reflect.ValueOf(err))
 			return true
 		}
-		err = errors.Unwrap(err)
+
+		if x, ok := err.(interface{ As(interface{}) bool }); ok && x.As(target) {
+			return true
+		}
+
+		if err = Unwrap(err); err == nil {
+			return false
+		}
 	}
-	return false
+}
+
+func Cause(err error) error {
+	for {
+		err1 := Unwrap(err)
+		if err1 == nil {
+			return err
+		}
+		err = err1
+	}
 }
