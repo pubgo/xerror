@@ -1,0 +1,425 @@
+// Package multierr allows combining one or more errors together.
+//
+// Overview
+//
+// Errors can be combined with the use of the Combine function.
+//
+// 	multierr.Combine(
+// 		reader.Close(),
+// 		writer.Close(),
+// 		conn.Close(),
+// 	)
+//
+// If only two errors are being combined, the Append function may be used
+// instead.
+//
+// 	err = multierr.Append(reader.Close(), writer.Close())
+//
+// This makes it possible to record resource cleanup failures from deferred
+// blocks with the help of named return values.
+//
+// 	func sendRequest(req Request) (err error) {
+// 		conn, err := openConnection()
+// 		if err != nil {
+// 			return err
+// 		}
+// 		defer func() {
+// 			err = multierr.Append(err, conn.Close())
+// 		}()
+// 		// ...
+// 	}
+//
+// The underlying list of errors for a returned error object may be retrieved
+// with the Errors function.
+//
+// 	errors := multierr.Errors(err)
+// 	if len(errors) > 0 {
+// 		fmt.Println("The following errors occurred:")
+// 	}
+//
+// Advanced Usage
+//
+// Errors returned by Combine and Append MAY implement the following
+// interface.
+//
+// 	type errorGroup interface {
+// 		// Returns a slice containing the underlying list of errors.
+// 		//
+// 		// This slice MUST NOT be modified by the caller.
+// 		Errors() []error
+// 	}
+//
+// Note that if you need access to list of errors behind a multierr error, you
+// should prefer using the Errors function. That said, if you need cheap
+// read-only access to the underlying errors slice, you can attempt to cast
+// the error to this interface. You MUST handle the failure case gracefully
+// because errors returned by Combine and Append are not guaranteed to
+// implement this interface.
+//
+// 	var errors []error
+// 	group, ok := err.(errorGroup)
+// 	if ok {
+// 		errors = group.Errors()
+// 	} else {
+// 		errors = []error{err}
+// 	}
+
+package xerror
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"strings"
+	"sync"
+
+	"go.uber.org/atomic"
+)
+
+var (
+	// Separator for single-line error messages.
+	singleLineSeparator = []byte("; ")
+
+	// Prefix for multi-line messages
+	multiLinePrefix = []byte("the following errors occurred:")
+
+	// Prefix for the first and following lines of an item in a list of
+	// multi-line error messages.
+	//
+	// For example, if a single item is:
+	//
+	// 	foo
+	// 	bar
+	//
+	// It will become,
+	//
+	// 	 -  foo
+	// 	    bar
+	multiLineSeparator = []byte("\n -  ")
+	multiLineIndent    = []byte("    ")
+)
+
+// _bufferPool is a pool of bytes.Buffers.
+var _bufferPool = sync.Pool{
+	New: func() interface{} {
+		return &bytes.Buffer{}
+	},
+}
+
+type errorGroup interface {
+	Errors() []error
+}
+
+// multiError is an error that holds one or more errors.
+//
+// An instance of this is guaranteed to be non-empty and flattened. That is,
+// none of the errors inside multiError are other multiErrors.
+//
+// multiError formats to a semi-colon delimited list of error messages with
+// %v and with a more readable multi-line format with %+v.
+type multiError struct {
+	copyNeeded atomic.Bool
+	errors     []error
+}
+
+var _ errorGroup = (*multiError)(nil)
+
+// Errors returns the list of underlying errors.
+//
+// This slice MUST NOT be modified.
+func (t *multiError) Errors() []error {
+	if t == nil {
+		return nil
+	}
+
+	return t.errors
+}
+
+func (t *multiError) Error() string {
+	if t == nil {
+		return ""
+	}
+
+	buff := _bufferPool.Get().(*bytes.Buffer)
+	buff.Reset()
+
+	t.writeSingleline(buff)
+
+	result := buff.String()
+	_bufferPool.Put(buff)
+	return result
+}
+
+func (t *multiError) Format(f fmt.State, c rune) {
+	if c == 'v' && f.Flag('+') {
+		t.writeMultiline(f)
+	} else {
+		t.writeSingleline(f)
+	}
+}
+
+func (t *multiError) writeSingleline(w io.Writer) {
+	first := true
+	for _, item := range t.errors {
+		if first {
+			first = false
+		} else {
+			w.Write(singleLineSeparator)
+		}
+		io.WriteString(w, item.Error())
+	}
+}
+
+func (t *multiError) writeMultiline(w io.Writer) {
+	w.Write(multiLinePrefix)
+	for _, item := range t.errors {
+		w.Write(multiLineSeparator)
+		writePrefixLine(w, multiLineIndent, fmt.Sprintf("%+v", item))
+	}
+}
+
+// Writes s to the writer with the given prefix added before each line after
+// the first.
+func writePrefixLine(w io.Writer, prefix []byte, s string) {
+	first := true
+	for len(s) > 0 {
+		if first {
+			first = false
+		} else {
+			w.Write(prefix)
+		}
+
+		idx := strings.IndexByte(s, '\n')
+		if idx < 0 {
+			idx = len(s) - 1
+		}
+
+		io.WriteString(w, s[:idx+1])
+		s = s[idx+1:]
+	}
+}
+
+type inspectResult struct {
+	// Number of top-level non-nil errors
+	Count int
+
+	// Total number of errors including multiErrors
+	Capacity int
+
+	// Index of the first non-nil error in the list. Value is meaningless if
+	// Count is zero.
+	FirstErrorIdx int
+
+	// Whether the list contains at least one multiError
+	ContainsMultiError bool
+}
+
+// Inspects the given slice of errors so that we can efficiently allocate
+// space for it.
+func inspect(errors []error) (res inspectResult) {
+	first := true
+	for i, err := range errors {
+		if err == nil {
+			continue
+		}
+
+		res.Count++
+		if first {
+			first = false
+			res.FirstErrorIdx = i
+		}
+
+		if merr, ok := err.(*multiError); ok {
+			res.Capacity += len(merr.errors)
+			res.ContainsMultiError = true
+		} else {
+			res.Capacity++
+		}
+	}
+	return
+}
+
+// fromSlice converts the given list of errors into a single error.
+func fromSlice(errors []error) error {
+	res := inspect(errors)
+	switch res.Count {
+	case 0:
+		return nil
+	case 1:
+		// only one non-nil entry
+		return errors[res.FirstErrorIdx]
+	case len(errors):
+		if !res.ContainsMultiError {
+			// already flat
+			return &multiError{errors: errors}
+		}
+	}
+
+	nonNilErrs := make([]error, 0, res.Capacity)
+	for _, err := range errors[res.FirstErrorIdx:] {
+		if err == nil {
+			continue
+		}
+
+		if nested, ok := err.(*multiError); ok {
+			nonNilErrs = append(nonNilErrs, nested.errors...)
+		} else {
+			nonNilErrs = append(nonNilErrs, err)
+		}
+	}
+
+	return &multiError{errors: nonNilErrs}
+}
+
+// Combine combines the passed errors into a single error.
+//
+// If zero arguments were passed or if all items are nil, a nil error is
+// returned.
+//
+// 	Combine(nil, nil)  // == nil
+//
+// If only a single error was passed, it is returned as-is.
+//
+// 	Combine(err)  // == err
+//
+// Combine skips over nil arguments so this function may be used to combine
+// together errors from operations that fail independently of each other.
+//
+// 	multierr.Combine(
+// 		reader.Close(),
+// 		writer.Close(),
+// 		pipe.Close(),
+// 	)
+//
+// If any of the passed errors is a multierr error, it will be flattened along
+// with the other errors.
+//
+// 	multierr.Combine(multierr.Combine(err1, err2), err3)
+// 	// is the same as
+// 	multierr.Combine(err1, err2, err3)
+//
+// The returned error formats into a readable multi-line error message if
+// formatted with %+v.
+//
+// 	fmt.Sprintf("%+v", multierr.Combine(err1, err2))
+func Combine(errors ...error) error {
+	return fromSlice(errors)
+}
+
+// Append appends the given errors together. Either value may be nil.
+//
+// This function is a specialization of Combine for the common case where
+// there are only two errors.
+//
+// 	err = multierr.Append(reader.Close(), writer.Close())
+//
+// The following pattern may also be used to record failure of deferred
+// operations without losing information about the original error.
+//
+// 	func doSomething(..) (err error) {
+// 		f := acquireResource()
+// 		defer func() {
+// 			err = multierr.Append(err, f.Close())
+// 		}()
+func Append(left error, right error) error {
+	switch {
+	case left == nil:
+		return right
+	case right == nil:
+		return left
+	}
+
+	if _, ok := right.(*multiError); !ok {
+		if l, ok := left.(*multiError); ok && !l.copyNeeded.Swap(true) {
+			// Common case where the error on the left is constantly being
+			// appended to.
+			errs := append(l.errors, right)
+			return &multiError{errors: errs}
+		} else if !ok {
+			// Both errorList are single errorList.
+			return &multiError{errors: []error{left, right}}
+		}
+	}
+
+	// Either right or both, left and right, are multiErrors. Rely on usual
+	// expensive logic.
+	errorList := [2]error{left, right}
+	return fromSlice(errorList[0:])
+}
+
+// AppendInto appends an error into the destination of an error pointer and
+// returns whether the error being appended was non-nil.
+//
+// 	var err error
+// 	multierr.AppendInto(&err, r.Close())
+// 	multierr.AppendInto(&err, w.Close())
+//
+// The above is equivalent to,
+//
+// 	err := multierr.Append(r.Close(), w.Close())
+//
+// As AppendInto reports whether the provided error was non-nil, it may be
+// used to build a multierr error in a loop more ergonomically. For example:
+//
+// 	var err error
+// 	for line := range lines {
+// 		var item Item
+// 		if multierr.AppendInto(&err, parse(line, &item)) {
+// 			continue
+// 		}
+// 		items = append(items, item)
+// 	}
+//
+// Compare this with a verison that relies solely on Append:
+//
+// 	var err error
+// 	for line := range lines {
+// 		var item Item
+// 		if parseErr := parse(line, &item); parseErr != nil {
+// 			err = multierr.Append(err, parseErr)
+// 			continue
+// 		}
+// 		items = append(items, item)
+// 	}
+func AppendInto(into *error, err error) (errored bool) {
+	if into == nil {
+		// We panic if 'into' is nil. This is not documented above
+		// because suggesting that the pointer must be non-nil may
+		// confuse users into thinking that the error that it points
+		// to must be non-nil.
+		panic("misuse of multierr.AppendInto: into pointer must not be nil")
+	}
+
+	if err == nil {
+		return false
+	}
+	*into = Append(*into, err)
+	return true
+}
+
+// As attempts to find the first error in the error list that matches the type
+// of the value that target points to.
+//
+// This function allows errors.As to traverse the values stored on the
+// multierr error.
+func (t *multiError) As(target interface{}) bool {
+	for _, err := range t.Errors() {
+		if As(err, target) {
+			return true
+		}
+	}
+	return false
+}
+
+// Is attempts to match the provided error against errors in the error list.
+//
+// This function allows errors.Is to traverse the values stored on the
+// multierr error.
+func (t *multiError) Is(target error) bool {
+	for _, err := range t.Errors() {
+		if Is(err, target) {
+			return true
+		}
+	}
+	return false
+}

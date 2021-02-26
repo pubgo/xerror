@@ -26,7 +26,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 	err2.Caller[0] = utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2)
 	err2.Caller[1] = utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3)
 	switch err := err.(type) {
-	case *xerrorBase, *xerror, *combine, error:
+	case *xerrorBase, *xerror, *multiError, error:
 		err2.Err = err
 	default:
 		err2.Err = WrapF(ErrType, fmt.Sprintf("%#v", err))
@@ -68,8 +68,12 @@ func trans(err error) []*xerror {
 		}}
 	case *xerror:
 		return []*xerror{err}
-	case *combine:
-		return *err
+	case *multiError:
+		var errs []*xerror
+		for i := range err.errors {
+			errs = append(errs, &xerror{Err: err.errors[i]})
+		}
+		return errs
 	default:
 		return nil
 	}

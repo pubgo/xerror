@@ -15,20 +15,7 @@ func PanicErrs(errs ...error) {
 		return
 	}
 
-	var errs1 combine
-	for i := range errs {
-		if isErrNil(errs[i]) {
-			continue
-		}
-
-		errs1 = append(errs1, handle(errs[i]))
-	}
-
-	if len(errs1) == 0 {
-		return
-	}
-
-	panic(errs1)
+	panic(Combine(errs...))
 }
 
 // Parse parse error to xerror
