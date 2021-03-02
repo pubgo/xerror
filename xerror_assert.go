@@ -19,11 +19,3 @@ func AssertFn(b bool, fn func() string) {
 
 	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fn() }))
 }
-
-func If(a bool, b interface{}, c interface{}) interface{} {
-	if a {
-		return b
-	}
-
-	return c
-}

@@ -37,20 +37,12 @@ func IsXErr(err error) bool {
 		return true
 	case *xerror:
 		return true
+	case *multiError:
+		return true
 	default:
 		return false
 	}
 }
-
-func Try(fn func()) (err error) {
-	Assert(fn == nil, "[fn] should not be nil")
-
-	defer RespErr(&err)
-	fn()
-	return
-}
-
-func Done() { panic(ErrDone) }
 
 func Panic(err error, args ...interface{}) {
 	if isErrNil(err) {

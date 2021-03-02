@@ -40,19 +40,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 }
 
 func isErrNil(err error) bool {
-	if err == nil {
-		return true
-	}
-
-	if err == ErrDone {
-		return true
-	}
-
-	if Is(err, ErrDone) {
-		return true
-	}
-
-	return false
+	return err == nil
 }
 
 func trans(err error) []*xerror {
