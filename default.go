@@ -27,6 +27,15 @@ func Parse(err error) xerror_abc.XErr {
 	return handle(err)
 }
 
+// ParseWith parse error to xerror
+func ParseWith(err error, fn func(err error)) {
+	if isErrNil(err) {
+		return
+	}
+
+	fn(handle(err))
+}
+
 func IsXErr(err error) bool {
 	if err == nil {
 		return false
@@ -76,7 +85,6 @@ func WrapF(err error, msg string, args ...interface{}) error {
 	return handle(err, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) })
 }
 
-// PanicErr
 func PanicErr(d1 interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return d1
@@ -111,7 +119,6 @@ func Exit(err error, args ...interface{}) {
 	os.Exit(1)
 }
 
-// ExitF
 func ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
@@ -122,7 +129,6 @@ func ExitF(err error, msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-// ExitErr
 func ExitErr(dat interface{}, err error) interface{} {
 	if isErrNil(err) {
 		return dat

@@ -7,6 +7,13 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+func TestParseWith(t *testing.T) {
+	var err = fmt.Errorf("hello error")
+	xerror.ParseWith(err, func(err error) {
+		fmt.Printf("%v\n", err)
+	})
+}
+
 func TestRespNext(t *testing.T) {
 	defer xerror.RespExit("TestRespNext")
 	TestPanic1(t)

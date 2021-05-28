@@ -74,7 +74,6 @@ func RespRaise(fns ...func(err XErr) error) {
 	panic(err1)
 }
 
-// Resp
 func Resp(fn func(err XErr)) {
 	Assert(fn == nil, "[fn] should not be nil")
 
