@@ -14,6 +14,11 @@ func TestParseWith(t *testing.T) {
 	})
 }
 
+func TestRespTest(t *testing.T) {
+	defer xerror.RespTest(t)
+	TestPanic1(t)
+}
+
 func TestRespNext(t *testing.T) {
 	defer xerror.RespExit("TestRespNext")
 	TestPanic1(t)

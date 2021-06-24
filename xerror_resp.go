@@ -3,6 +3,7 @@ package xerror
 import (
 	"fmt"
 	"os"
+	"testing"
 
 	"github.com/pubgo/xerror/internal/utils"
 )
@@ -14,22 +15,6 @@ func RespErr(err *error) {
 	}
 
 	handleRecover(err, val)
-}
-
-func RespDebug(args ...interface{}) {
-	val := recover()
-	if val == nil {
-		return
-	}
-
-	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
-		return
-	}
-
-	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
-	printStack()
 }
 
 func Raise(fns ...func(err XErr) error) {
@@ -106,4 +91,35 @@ func RespExit(args ...interface{}) {
 	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
 	printStack()
 	os.Exit(1)
+}
+
+func RespDebug(args ...interface{}) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
+	var err error
+	handleRecover(&err, val)
+	if isErrNil(err) {
+		return
+	}
+
+	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
+	printStack()
+}
+
+func RespTest(t *testing.T) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
+	var err error
+	handleRecover(&err, val)
+	if isErrNil(err) {
+		return
+	}
+
+	t.Fatal(handle(err).stackString())
 }
