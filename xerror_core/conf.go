@@ -9,7 +9,7 @@ type conf struct {
 
 var Conf = conf{
 	IsCaller:   true,
-	CallDepth:  3,
+	CallDepth:  2,
 	PrintStack: true,
 	Delimiter:  "||",
 }

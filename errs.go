@@ -1,9 +1,7 @@
 package xerror
 
-import "errors"
-
 var (
-	// ErrDone done
-	ErrDone = errors.New("DONE")
-	ErrType = errors.New("type error")
+	Err       = New(Name)
+	ErrType   = Err.New("type not match")
+	ErrAssert = Err.New("assert true")
 )

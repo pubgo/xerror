@@ -3,62 +3,123 @@ package xerror
 import (
 	"fmt"
 	"os"
+	"testing"
 
-	"github.com/pubgo/xerror/xerror_util"
+	"github.com/pubgo/xerror/internal/utils"
 )
 
 func RespErr(err *error) {
-	handleRecover(err, recover())
-	if isErrNil(*err) {
-		*err = nil
+	val := recover()
+	if val == nil {
+		return
 	}
+
+	handleRecover(err, val)
 }
 
-func RespDebug(args ...interface{}) {
+func Raise(fns ...func(err XErr) error) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
 	var err error
-	handleRecover(&err, recover())
+	handleRecover(&err, val)
 	if isErrNil(err) {
 		return
 	}
 
-	p(handle(err, options{msg: fmt.Sprint(args...)}).p())
-	printStack()
+	err1 := &xerror{Err: err}
+	if len(fns) > 0 {
+		err1.Caller = [2]string{utils.CallerWithFunc(fns[0])}
+		panic(fns[0](err1))
+	}
+
+	panic(err1)
 }
 
-func RespRaise(fn func(err XErr) error) {
+func RespRaise(fns ...func(err XErr) error) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
 	var err error
-	handleRecover(&err, recover())
+	handleRecover(&err, val)
 	if isErrNil(err) {
 		return
 	}
 
-	err1 := &xerror{Cause1: err, Caller: [2]string{xerror_util.CallerWithFunc(fn)}}
-	if fn == nil {
-		panic(err1)
+	err1 := &xerror{Err: err}
+	if len(fns) > 0 {
+		err1.Caller = [2]string{utils.CallerWithFunc(fns[0])}
+		panic(fns[0](err1))
 	}
-	panic(fn(err1))
+
+	panic(err1)
 }
 
-// Resp
 func Resp(fn func(err XErr)) {
+	Assert(fn == nil, "[fn] should not be nil")
+
+	val := recover()
+	if val == nil {
+		return
+	}
+
 	var err error
-	handleRecover(&err, recover())
+	handleRecover(&err, val)
 	if isErrNil(err) {
 		return
 	}
 
-	Assert(fn == nil, "[fn] should not be nil")
-	fn(&xerror{Cause1: err, Caller: [2]string{xerror_util.CallerWithFunc(fn)}})
+	fn(&xerror{Err: err, Caller: [2]string{utils.CallerWithFunc(fn)}})
 }
 
 func RespExit(args ...interface{}) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
 	var err error
-	handleRecover(&err, recover())
+	handleRecover(&err, val)
 	if isErrNil(err) {
 		return
 	}
 
-	p(handle(err, options{msg: fmt.Sprint(args...)}).p())
+	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
 	printStack()
 	os.Exit(1)
+}
+
+func RespDebug(args ...interface{}) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
+	var err error
+	handleRecover(&err, val)
+	if isErrNil(err) {
+		return
+	}
+
+	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
+	printStack()
+}
+
+func RespTest(t *testing.T) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
+	var err error
+	handleRecover(&err, val)
+	if isErrNil(err) {
+		return
+	}
+
+	t.Fatal(handle(err).stackString())
 }
