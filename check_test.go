@@ -9,7 +9,7 @@ import (
 
 func TestParseWith(t *testing.T) {
 	var err = fmt.Errorf("hello error")
-	xerror.ParseWith(err, func(err error) {
+	xerror.ParseWith(err, func(err xerror.XErr) {
 		fmt.Printf("%v\n", err)
 	})
 }

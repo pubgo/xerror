@@ -68,6 +68,7 @@ package xerror
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -417,7 +418,7 @@ func (t *multiError) As(target interface{}) bool {
 // multierr error.
 func (t *multiError) Is(target error) bool {
 	for _, err := range t.Errors() {
-		if Is(err, target) {
+		if errors.Is(err, target) {
 			return true
 		}
 	}

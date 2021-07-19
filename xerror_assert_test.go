@@ -4,6 +4,12 @@ import (
 	"testing"
 )
 
+func TestAssertEqual(t *testing.T) {
+	defer RespExit()
+
+	AssertEqual("hello", 1)
+}
+
 func TestCheckNil(t *testing.T) {
 	defer RespExit()
 

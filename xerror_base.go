@@ -35,7 +35,7 @@ type xerrorBase struct {
 	Caller string `json:"caller,omitempty"`
 }
 
-func (t *xerrorBase) Error() string { return t.Code }
+func (t *xerrorBase) Error() string { return fmt.Sprintf("[%s] %s", t.Code, t.Msg) }
 func (t *xerrorBase) As(target interface{}) bool {
 	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
 	if err, ok := t1.(*xerrorBase); ok {
@@ -45,14 +45,13 @@ func (t *xerrorBase) As(target interface{}) bool {
 	return false
 }
 
-func (t *xerrorBase) New(code string, ms ...string) error {
+func (t *xerrorBase) New(ms ...string) error {
 	var msg string
 	if len(ms) > 0 {
 		msg = ms[0]
 	}
 
-	x := &xerrorBase{}
-	x.Code = t.Code + xerror_core.Conf.Delimiter + code
+	x := &xerrorBase{Code: t.Code}
 	x.Msg = msg
 	x.Caller = utils.CallerWithDepth(xerror_core.Conf.CallDepth)
 
