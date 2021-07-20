@@ -7,6 +7,10 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+func TestErr(t *testing.T) {
+	fmt.Println(xerror.Wrap(xerror.ErrAssert))
+}
+
 func TestParseWith(t *testing.T) {
 	var err = fmt.Errorf("hello error")
 	xerror.ParseWith(err, func(err xerror.XErr) {

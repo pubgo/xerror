@@ -36,6 +36,18 @@ type xerrorBase struct {
 }
 
 func (t *xerrorBase) Error() string { return fmt.Sprintf("[%s] %s", t.Code, t.Msg) }
+func (t *xerrorBase) Is(err error) bool {
+	if t == nil || err == nil {
+		return false
+	}
+
+	switch err := err.(type) {
+	case *xerrorBase:
+		return err.Code == t.Code
+	default:
+		return false
+	}
+}
 func (t *xerrorBase) As(target interface{}) bool {
 	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
 	if err, ok := t1.(*xerrorBase); ok {
@@ -45,15 +57,9 @@ func (t *xerrorBase) As(target interface{}) bool {
 	return false
 }
 
-func (t *xerrorBase) New(ms ...string) error {
-	var msg string
-	if len(ms) > 0 {
-		msg = ms[0]
-	}
-
+func (t *xerrorBase) New(msg string) error {
 	x := &xerrorBase{Code: t.Code}
 	x.Msg = msg
-	x.Caller = utils.CallerWithDepth(xerror_core.Conf.CallDepth)
-
+	x.Caller = utils.CallerWithDepth(xerror_core.Conf.CallDepth + 1)
 	return x
 }
