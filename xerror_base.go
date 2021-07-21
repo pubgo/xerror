@@ -11,7 +11,7 @@ import (
 func Fmt(format string, a ...interface{}) *xerrorBase {
 	x := &xerrorBase{}
 	x.Code = fmt.Sprintf(format, a...)
-	x.Caller = utils.CallerWithDepth(xerror_core.Conf.CallDepth)
+	x.Caller = utils.CallerWithDepth(xerror_core.Conf.CallDepth+1)
 	return x
 }
 
