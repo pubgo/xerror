@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"github.com/valyala/bytebufferpool"
+
 	"reflect"
 	"runtime"
 	"strconv"
@@ -40,8 +42,8 @@ func CallerWithFunc(fn interface{}) string {
 	var _e = runtime.FuncForPC(_fn.Pointer())
 	var file, line = _e.FileLine(_fn.Pointer())
 
-	var buf = &strings.Builder{}
-	defer buf.Reset()
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
 
 	buf.WriteString(file)
 	buf.WriteString(":")

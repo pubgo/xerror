@@ -109,7 +109,7 @@ func RespDebug(args ...interface{}) {
 	printStack()
 }
 
-func RespTest(t *testing.T) {
+func RespTest(t *testing.T, debugs ...bool) {
 	val := recover()
 	if val == nil {
 		return
@@ -121,5 +121,12 @@ func RespTest(t *testing.T) {
 		return
 	}
 
-	t.Fatal(handle(err).stackString())
+	var msg = handle(err).stackString()
+
+	if len(debugs) > 0 {
+		p(msg)
+		return
+	}
+
+	t.Fatal(msg)
 }

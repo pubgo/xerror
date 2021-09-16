@@ -14,6 +14,14 @@ func AssertEqual(a, b interface{}, opts ...cmp.Option) {
 	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fmt.Sprintf("[%#v] not match [%#v]", a, b) }))
 }
 
+func AssertNotEqual(a, b interface{}, opts ...cmp.Option) {
+	if !cmp.Equal(a, b, opts...) {
+		return
+	}
+
+	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fmt.Sprintf("[%#v] match [%#v]", a, b) }))
+}
+
 func Assert(b bool, format string, a ...interface{}) {
 	if !b {
 		return
