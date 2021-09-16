@@ -19,6 +19,15 @@ func TryWith(err *error, fn func()) {
 	return
 }
 
+func TryThrow(fn func(), args ...interface{}) {
+	Assert(fn == nil, "[fn] should not be nil")
+
+	defer RespRaise(func(err XErr) error { return err.Wrap(args...) })
+	fn()
+
+	return
+}
+
 func Try(fn func()) (err error) {
 	Assert(fn == nil, "[fn] should not be nil")
 
