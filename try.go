@@ -1,5 +1,10 @@
 package xerror
 
+import (
+	"fmt"
+	"github.com/pubgo/xerror/internal/utils"
+)
+
 func TryCatch(fn func(), catch ...func(err error)) {
 	Assert(fn == nil, "[fn] should not be nil")
 
@@ -22,7 +27,24 @@ func TryWith(err *error, fn func()) {
 func TryThrow(fn func(), args ...interface{}) {
 	Assert(fn == nil, "[fn] should not be nil")
 
-	defer RespRaise(func(err XErr) error { return err.Wrap(args...) })
+	defer func() {
+		val := recover()
+		if val == nil {
+			return
+		}
+
+		var err error
+		handleRecover(&err, val)
+		if isErrNil(err) {
+			return
+		}
+
+		err1 := &xerror{Err: err}
+		err1.Msg = fmt.Sprint(args...)
+		err1.Caller = [2]string{utils.CallerWithFunc(fn)}
+		panic(err1)
+	}()
+
 	fn()
 
 	return
