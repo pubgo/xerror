@@ -1,8 +1,11 @@
 package xerror
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/pubgo/xerror/internal/utils"
@@ -129,4 +132,30 @@ func RespTest(t *testing.T, debugs ...bool) {
 	}
 
 	t.Fatal(msg)
+}
+
+func RespHttp(w http.ResponseWriter, req *http.Request) {
+	val := recover()
+	if val == nil {
+		return
+	}
+
+	var err error
+	handleRecover(&err, val)
+	if isErrNil(err) {
+		return
+	}
+
+	w.WriteHeader(http.StatusBadRequest)
+
+	var dt = PanicBytes(json.MarshalIndent(req.Header, "", "\t"))
+	fmt.Fprintln(w, "request header")
+	fmt.Fprintln(w, string(dt))
+	fmt.Fprint(w, "\n\n\n\n")
+	fmt.Fprintln(w, "error stack")
+	fmt.Fprintln(w, handle(err).stackString())
+	fmt.Fprint(w, "\n\n\n\n")
+	fmt.Fprintln(w, "stack")
+	buf := make([]byte, 1024*1024)
+	fmt.Fprintln(w, string(buf[:runtime.Stack(buf, true)]))
 }
