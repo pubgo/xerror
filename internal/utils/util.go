@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"github.com/valyala/bytebufferpool"
-
 	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/valyala/bytebufferpool"
 )
 
 type frame uintptr

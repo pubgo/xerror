@@ -20,7 +20,7 @@ func RespErr(err *error) {
 	handleRecover(err, val)
 }
 
-func Raise(fns ...func(err XErr) error) {
+func Raise(fns ...interface{}) {
 	val := recover()
 	if val == nil {
 		return
@@ -35,7 +35,6 @@ func Raise(fns ...func(err XErr) error) {
 	err1 := &xerror{Err: err}
 	if len(fns) > 0 {
 		err1.Caller = [2]string{utils.CallerWithFunc(fns[0])}
-		panic(fns[0](err1))
 	}
 
 	panic(err1)
