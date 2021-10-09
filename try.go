@@ -2,11 +2,14 @@ package xerror
 
 import (
 	"fmt"
+
 	"github.com/pubgo/xerror/internal/utils"
 )
 
 func TryCatch(fn func(), catch ...func(err error)) {
-	Assert(fn == nil, "[fn] should not be nil")
+	if fn == nil {
+		panic("[fn] should not be nil")
+	}
 
 	if len(catch) > 0 && catch[0] != nil {
 		defer Resp(func(err XErr) { catch[0](err) })
@@ -16,7 +19,9 @@ func TryCatch(fn func(), catch ...func(err error)) {
 }
 
 func TryWith(err *error, fn func()) {
-	Assert(fn == nil, "[fn] should not be nil")
+	if fn == nil {
+		panic("[fn] should not be nil")
+	}
 
 	defer RespErr(err)
 	fn()
@@ -24,8 +29,38 @@ func TryWith(err *error, fn func()) {
 	return
 }
 
+func TryVal(fn func() interface{}) interface{} {
+	if fn == nil {
+		panic("[fn] should not be nil")
+	}
+
+	defer func() {
+		val := recover()
+		if val == nil {
+			return
+		}
+
+		var err error
+		handleRecover(&err, val)
+		if isErrNil(err) {
+			return
+		}
+
+		err1 := &xerror{Err: err}
+		err1.Caller = [2]string{
+			utils.CallerWithFunc(fn),
+			utils.CallerWithDepth(4),
+		}
+		panic(err1)
+	}()
+
+	return fn()
+}
+
 func TryThrow(fn func(), args ...interface{}) {
-	Assert(fn == nil, "[fn] should not be nil")
+	if fn == nil {
+		panic("[fn] should not be nil")
+	}
 
 	defer func() {
 		val := recover()
@@ -41,7 +76,10 @@ func TryThrow(fn func(), args ...interface{}) {
 
 		err1 := &xerror{Err: err}
 		err1.Msg = fmt.Sprint(args...)
-		err1.Caller = [2]string{utils.CallerWithFunc(fn)}
+		err1.Caller = [2]string{
+			utils.CallerWithFunc(fn),
+			utils.CallerWithDepth(4),
+		}
 		panic(err1)
 	}()
 
@@ -51,7 +89,9 @@ func TryThrow(fn func(), args ...interface{}) {
 }
 
 func Try(fn func()) (err error) {
-	Assert(fn == nil, "[fn] should not be nil")
+	if fn == nil {
+		panic("[fn] should not be nil")
+	}
 
 	defer RespErr(&err)
 
