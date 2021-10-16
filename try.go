@@ -6,18 +6,6 @@ import (
 	"github.com/pubgo/xerror/internal/utils"
 )
 
-func TryCatch(fn func(), catch ...func(err error)) {
-	if fn == nil {
-		panic("[fn] should not be nil")
-	}
-
-	if len(catch) > 0 && catch[0] != nil {
-		defer Resp(func(err XErr) { catch[0](err) })
-	}
-
-	fn()
-}
-
 func TryWith(err *error, fn func()) {
 	if fn == nil {
 		panic("[fn] should not be nil")
@@ -27,6 +15,25 @@ func TryWith(err *error, fn func()) {
 	fn()
 
 	return
+}
+
+func TryCatch(fn func() (interface{}, error), catch func(err error)) interface{} {
+	if fn == nil {
+		panic("[fn] should not be nil")
+	}
+
+	if catch == nil {
+		panic("[catch] should not be nil")
+	}
+
+	defer Resp(func(err XErr) { catch(err) })
+
+	var val, err = fn()
+	if err != nil {
+		catch(err)
+		return nil
+	}
+	return val
 }
 
 func TryVal(fn func() interface{}) interface{} {

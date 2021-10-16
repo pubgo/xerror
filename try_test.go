@@ -5,6 +5,12 @@ import (
 	"testing"
 )
 
+func TestTryCatch(t *testing.T) {
+	fmt.Println(TryCatch(func() (interface{}, error) { panic("ok") }, func(err error) {
+		fmt.Println(err.Error(), err)
+	}))
+}
+
 func TestTryThrow(t *testing.T) {
 	defer RespTest(t)
 
