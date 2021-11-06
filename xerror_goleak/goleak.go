@@ -1,9 +1,9 @@
 package xerror_goleak
 
 import (
-	"go.uber.org/goleak"
-
 	"testing"
+
+	"go.uber.org/goleak"
 )
 
 type Option = goleak.Option

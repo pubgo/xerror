@@ -133,7 +133,7 @@ func RespTest(t *testing.T, debugs ...bool) {
 	t.Fatal(msg)
 }
 
-func RespHttp(w http.ResponseWriter, req *http.Request) {
+func RespHttp(w http.ResponseWriter, req *http.Request, fns ...func(err error)) {
 	val := recover()
 	if val == nil {
 		return
@@ -156,5 +156,9 @@ func RespHttp(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(w, "\n\n\n\n")
 	fmt.Fprintln(w, "stack")
 	buf := make([]byte, 1024*1024)
+	if len(fns) > 0 {
+		fns[0](err)
+	}
+
 	fmt.Fprintln(w, string(buf[:runtime.Stack(buf, true)]))
 }

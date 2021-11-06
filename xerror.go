@@ -66,13 +66,13 @@ func (t *xerror) Is(err error) bool {
 		return false
 	}
 
-	switch err := err.(type) {
+	switch _err := err.(type) {
 	case *xerrorBase:
-		return err == t.Err
+		return _err == t.Err
 	case *xerror:
-		return err == t || err.Err == t.Err
+		return _err == t || _err.Err == t.Err
 	case error:
-		return t.Err == err
+		return t.Err == _err
 	default:
 		return false
 	}
