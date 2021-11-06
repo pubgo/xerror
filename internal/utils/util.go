@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"github.com/valyala/bytebufferpool"
-
 	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/valyala/bytebufferpool"
 )
 
 type frame uintptr
@@ -24,6 +24,7 @@ func CallerWithDepth(cd int) string {
 	if fn == nil {
 		return "unknown type"
 	}
+
 
 	file, line := fn.FileLine(f.pc())
 	return file + ":" + strconv.Itoa(line)

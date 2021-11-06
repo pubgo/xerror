@@ -57,13 +57,13 @@ func handleRecover(err *error, val interface{}) {
 		return
 	}
 
-	switch val := val.(type) {
+	switch val1 := val.(type) {
 	case error:
-		*err = val
+		*err = val1
 	case string:
-		*err = errors.New(val)
+		*err = errors.New(val1)
 	default:
-		*err = fmt.Errorf("%#v\n", val)
+		*err = fmt.Errorf("%#v\n", val1)
 	}
 }
 
