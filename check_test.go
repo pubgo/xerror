@@ -11,13 +11,6 @@ func TestErr(t *testing.T) {
 	fmt.Println(xerror.Wrap(xerror.ErrAssert))
 }
 
-func TestParseWith(t *testing.T) {
-	var err = fmt.Errorf("hello error")
-	xerror.ParseWith(err, func(err xerror.XErr) {
-		fmt.Printf("%v\n", err)
-	})
-}
-
 func TestRespTest(t *testing.T) {
 	defer xerror.RespTest(t)
 	TestPanic1(t)

@@ -17,24 +17,6 @@ var xerrorBaseTyp = reflect.TypeOf(&xerrorBase{})
 func isErrNil(err error) bool { return err == nil }
 func p(a ...interface{})      { _, _ = fmt.Fprintln(os.Stderr, a...) }
 
-// Parse parse error to xerror
-func Parse(err error) XErr {
-	if isErrNil(err) {
-		return nil
-	}
-
-	return handle(err)
-}
-
-// ParseWith parse error to xerror
-func ParseWith(err error, fn func(err XErr)) {
-	if isErrNil(err) {
-		return
-	}
-
-	fn(handle(err))
-}
-
 func IsXErr(err error) bool {
 	if err == nil {
 		return false
@@ -57,13 +39,22 @@ func handleRecover(err *error, val interface{}) {
 		return
 	}
 
-	switch val1 := val.(type) {
+	// 自定义error检测
+	var handlers = xerror_core.Handlers()
+	for i := range handlers {
+		if _err := handlers[i](val); _err != nil {
+			*err = _err
+			return
+		}
+	}
+
+	switch _val := val.(type) {
 	case error:
-		*err = val1
+		*err = _val
 	case string:
-		*err = errors.New(val1)
+		*err = errors.New(_val)
 	default:
-		*err = fmt.Errorf("%#v\n", val1)
+		*err = fmt.Errorf("%#v\n", _val)
 	}
 }
 

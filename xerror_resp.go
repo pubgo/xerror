@@ -9,15 +9,25 @@ import (
 	"testing"
 
 	"github.com/pubgo/xerror/internal/utils"
+	"github.com/pubgo/xerror/xerror_core"
 )
 
-func RespErr(err *error) {
+func RespErr(gErr *error) {
 	val := recover()
 	if val == nil {
 		return
 	}
 
-	handleRecover(err, val)
+	var err error
+	handleRecover(&err, val)
+	if isErrNil(err) {
+		return
+	}
+
+	*gErr = &xerror{Err: err, Caller: [2]string{
+		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
+		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
+	}}
 }
 
 func Raise(fns ...interface{}) {
@@ -32,12 +42,10 @@ func Raise(fns ...interface{}) {
 		return
 	}
 
-	err1 := &xerror{Err: err}
-	if len(fns) > 0 {
-		err1.Caller = [2]string{utils.CallerWithFunc(fns[0])}
-	}
-
-	panic(err1)
+	panic(&xerror{Err: err, Caller: [2]string{
+		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
+		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
+	}})
 }
 
 func RespRaise(fns ...func(err XErr) error) {
@@ -54,10 +62,12 @@ func RespRaise(fns ...func(err XErr) error) {
 
 	err1 := &xerror{Err: err}
 	if len(fns) > 0 {
-		err1.Caller = [2]string{utils.CallerWithFunc(fns[0])}
+		err1.Caller = [2]string{
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
+		}
 		panic(fns[0](err1))
 	}
-
 	panic(err1)
 }
 
@@ -75,7 +85,10 @@ func Resp(fn func(err XErr)) {
 		return
 	}
 
-	fn(&xerror{Err: err, Caller: [2]string{utils.CallerWithFunc(fn)}})
+	fn(&xerror{Err: err, Caller: [2]string{
+		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
+		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
+	}})
 }
 
 func RespExit(args ...interface{}) {
