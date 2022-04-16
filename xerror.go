@@ -37,6 +37,9 @@ func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	}
 
 	for i := range xrr.Caller {
+		if strings.Contains(xrr.Caller[i], "/src/runtime/") {
+			continue
+		}
 		buf.WriteString(fmt.Sprintf("%s]: %s\n", color.Yellow.P("Caller"), xrr.Caller[i]))
 	}
 

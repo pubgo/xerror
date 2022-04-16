@@ -2,9 +2,19 @@ package xerror
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/kr/pretty"
 )
+
+func AssertNil(args ...interface{}) {
+	for i := range args {
+		if args[i] == nil || reflect.ValueOf(args[i]).IsZero() {
+			panic(handle(ErrIsNil, func(err *xerror) { err.Msg = pretty.Sprint(args[i], "is nil") }))
+		}
+	}
+}
 
 func AssertEqual(a, b interface{}, opts ...cmp.Option) {
 	if cmp.Equal(a, b, opts...) {
