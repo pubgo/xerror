@@ -32,6 +32,14 @@ func AssertNotEqual(a, b interface{}, opts ...cmp.Option) {
 	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fmt.Sprintf("[%#v] match [%#v]", a, b) }))
 }
 
+func AssertErr(b bool, format string, a ...interface{}) error {
+	if !b {
+		return nil
+	}
+
+	return fmt.Errorf(format, a...)
+}
+
 func Assert(b bool, format string, a ...interface{}) {
 	if !b {
 		return
