@@ -5,15 +5,6 @@ import (
 	"os"
 )
 
-// PanicErrs combine multiple errors
-func PanicErrs(errs ...error) {
-	if len(errs) == 0 {
-		return
-	}
-
-	panic(Combine(errs...))
-}
-
 func Panic(err error, args ...interface{}) {
 	if isErrNil(err) {
 		return
@@ -30,7 +21,7 @@ func PanicF(err error, msg string, args ...interface{}) {
 	panic(handle(err, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) }))
 }
 
-func PanicErr(ret interface{}, err error) interface{} {
+func PanicErr[A any](ret A, err error) A {
 	if isErrNil(err) {
 		return ret
 	}
@@ -74,7 +65,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func ExitErr(dat interface{}, err error) interface{} {
+func ExitErr[A any](dat A, err error) A {
 	if isErrNil(err) {
 		return dat
 	}

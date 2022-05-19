@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package turingvideo.error.v1;
+
+option go_package = "./;errorpb";
+
+message kv {
+  string k = 1;
+  string v = 2;
+}
+
+message Error {
+  string id = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated kv  metadata = 4;
+}

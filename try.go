@@ -17,7 +17,7 @@ func TryWith(err *error, fn func()) {
 	return
 }
 
-func TryCatch(fn func() (interface{}, error), catch func(err error)) interface{} {
+func TryCatch[A any](fn func() (A, error), catch func(err error)) A {
 	if fn == nil {
 		panic("[fn] should not be nil")
 	}
@@ -36,7 +36,7 @@ func TryCatch(fn func() (interface{}, error), catch func(err error)) interface{}
 	return val
 }
 
-func TryVal(fn func() interface{}) interface{} {
+func TryVal[A any](fn func() A) A {
 	if fn == nil {
 		panic("[fn] should not be nil")
 	}

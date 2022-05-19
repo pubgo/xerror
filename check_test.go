@@ -7,6 +7,19 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+type testS struct {
+	Hello string
+}
+
+func test1() (*testS, error) {
+	return new(testS), nil
+}
+
+func TestPanicErr(t *testing.T) {
+	var dt = xerror.PanicErr(test1())
+	fmt.Println(dt.Hello)
+}
+
 func TestErr(t *testing.T) {
 	fmt.Println(xerror.Wrap(xerror.ErrAssert))
 }

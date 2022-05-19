@@ -70,7 +70,7 @@ func (t *xerror) Is(err error) bool {
 	}
 
 	switch _err := err.(type) {
-	case *xerrorBase:
+	case *baseErr:
 		return _err == t.Err
 	case *xerror:
 		return _err == t || _err.Err == t.Err

@@ -12,10 +12,21 @@ import (
 )
 
 var xerrorTyp = reflect.TypeOf(&xerror{})
-var xerrorBaseTyp = reflect.TypeOf(&xerrorBase{})
+var xerrorBaseTyp = reflect.TypeOf(&baseErr{})
 
-func isErrNil(err error) bool { return err == nil }
-func p(a ...interface{})      { _, _ = fmt.Fprintln(os.Stderr, a...) }
+func isErrNil(err error) bool {
+	if err == nil {
+		return true
+	}
+
+	if reflect.ValueOf(err).IsNil() {
+		return true
+	}
+
+	return false
+}
+
+func p(a ...interface{}) { _, _ = fmt.Fprintln(os.Stderr, a...) }
 
 func IsXErr(err error) bool {
 	if err == nil {
@@ -23,7 +34,7 @@ func IsXErr(err error) bool {
 	}
 
 	switch err.(type) {
-	case *xerrorBase:
+	case *baseErr:
 		return true
 	case *xerror:
 		return true
@@ -63,7 +74,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 	err1.Caller[0] = utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2)
 	err1.Caller[1] = utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3)
 	switch err := err.(type) {
-	case *xerrorBase, *xerror, *multiError, error:
+	case *baseErr, *xerror, *multiError, error:
 		err1.Err = err
 	default:
 		err1.Err = WrapF(ErrType, fmt.Sprintf("%#v", err))
@@ -82,7 +93,7 @@ func trans(err error) []*xerror {
 	}
 
 	switch err := err.(type) {
-	case *xerrorBase:
+	case *baseErr:
 		return []*xerror{{
 			Msg:    err.Msg,
 			Caller: [2]string{err.Caller},
