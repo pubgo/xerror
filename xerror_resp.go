@@ -12,6 +12,11 @@ import (
 	"github.com/pubgo/xerror/xerror_core"
 )
 
+var RecoverErr = RespErr
+var Recovery = Resp
+var RecoverTest = RespTest
+var RecoverAndExit = RespExit
+
 func RespErr(gErr *error) {
 	val := recover()
 	if val == nil {
