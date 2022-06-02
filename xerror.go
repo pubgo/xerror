@@ -7,7 +7,16 @@ import (
 	"strings"
 
 	"github.com/pubgo/xerror/internal/color"
+	"github.com/pubgo/xerror/internal/utils"
+	"github.com/pubgo/xerror/xerror_core"
 )
+
+func New(format string, a ...interface{}) XErr {
+	x := &xerror{}
+	x.Msg = fmt.Sprintf(format, a...)
+	x.Caller = []string{utils.CallerWithDepth(xerror_core.Conf.CallDepth + 1)}
+	return x
+}
 
 type xerror struct {
 	Err    error    `json:"cause,omitempty"`
