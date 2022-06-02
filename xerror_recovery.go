@@ -28,13 +28,13 @@ func RecoverErr(gErr *error) {
 		Err: err,
 		Msg: err.Error(),
 		Caller: []string{
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 1),
 			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
-			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
 		},
 	}
 }
 
-func RecoverAndRaise(fns ...func(err XErr) error) {
+func RecoverAndRaise(fns ...func(err XErr) XErr) {
 	val := recover()
 	if val == nil {
 		return
@@ -49,8 +49,8 @@ func RecoverAndRaise(fns ...func(err XErr) error) {
 	err1 := &xerror{Err: err, Msg: err.Error()}
 	if len(fns) > 0 {
 		err1.Caller = []string{
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 1),
 			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
-			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
 		}
 		panic(fns[0](err1))
 	}
@@ -71,9 +71,9 @@ func Recovery(fn func(err XErr)) {
 		return
 	}
 
-	fn(&xerror{Err: err, Caller: []string{
+	fn(&xerror{Err: err, Msg: err.Error(), Caller: []string{
+		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 1),
 		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
-		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
 	}})
 }
 
@@ -91,11 +91,15 @@ func RecoverAndExit(args ...interface{}) {
 
 	p(handle(err, func(err *xerror) {
 		err.Detail = fmt.Sprint(args...)
-		err.Caller = append(
-			err.Caller,
-			utils.CallerWithDepth(xerror_core.Conf.CallDepth+2),
-			utils.CallerWithDepth(xerror_core.Conf.CallDepth+3),
-		)
+		for i := 0; ; i++ {
+			var cc = utils.CallerWithDepth(xerror_core.Conf.CallDepth + i)
+			if cc == "" {
+				break
+			}
+
+			err.Caller = append(err.Caller, cc)
+		}
+
 	}).debugString())
 	printStack()
 	os.Exit(1)

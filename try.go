@@ -47,7 +47,7 @@ func TryCatch(fn func(), catch func(err error)) {
 func TryThrow(fn func()) {
 	checkFn(fn)
 
-	defer RecoverAndRaise(func(err XErr) error {
+	defer RecoverAndRaise(func(err XErr) XErr {
 		return err.WrapF("fn=>", utils.CallerWithFunc(fn))
 	})
 

@@ -7,6 +7,6 @@ type XErr interface {
 	String() string
 	DebugPrint()
 	Unwrap() error
-	Wrap(args ...interface{}) error
-	WrapF(msg string, args ...interface{}) error
+	Wrap(args ...interface{}) XErr
+	WrapF(msg string, args ...interface{}) XErr
 }

@@ -29,11 +29,11 @@ func (t *xerror) String() string { return t.Stack() }
 func (t *xerror) DebugPrint()    { p(handle(Wrap(t)).debugString()) }
 func (t *xerror) Unwrap() error  { return t.Err }
 func (t *xerror) Cause() error   { return t.Err }
-func (t *xerror) Wrap(args ...interface{}) error {
+func (t *xerror) Wrap(args ...interface{}) XErr {
 	return handle(t, func(err *xerror) { err.Detail = fmt.Sprint(args...) })
 }
 
-func (t *xerror) WrapF(msg string, args ...interface{}) error {
+func (t *xerror) WrapF(msg string, args ...interface{}) XErr {
 	return handle(t, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) })
 }
 
