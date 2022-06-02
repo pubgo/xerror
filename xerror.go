@@ -58,11 +58,7 @@ func (t *xerror) _p(num int, buf *strings.Builder, xrr *xerror) {
 		buf.WriteString(fmt.Sprintf("%s:%d]: %s\n", color.Yellow.P("Caller"), num, xrr.Caller[i]))
 	}
 
-	if errs := trans(xrr.Err); errs != nil {
-		for i := range errs {
-			t._p(num+1, buf, errs[i])
-		}
-	}
+	t._p(num+1, buf, trans(xrr.Err))
 }
 
 func (t *xerror) debugString() string {

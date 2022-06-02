@@ -50,14 +50,16 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 	return err1
 }
 
-func trans(err error) []*xerror {
+func trans(err error) *xerror {
 	if err == nil {
 		return nil
 	}
 
 	switch err := err.(type) {
 	case *xerror:
-		return []*xerror{err}
+		return err
+	case interface{ Unwrap() error }:
+		return &xerror{Err: err.Unwrap(), Msg: err.Unwrap().Error()}
 	default:
 		return nil
 	}
