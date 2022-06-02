@@ -59,6 +59,9 @@ func trans(err error) *xerror {
 	case *xerror:
 		return err
 	case interface{ Unwrap() error }:
+		if err.Unwrap() == nil {
+			return nil
+		}
 		return &xerror{Err: err.Unwrap(), Msg: err.Unwrap().Error()}
 	default:
 		return nil
