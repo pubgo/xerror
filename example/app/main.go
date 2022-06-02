@@ -25,7 +25,7 @@ func C() string {
 }
 
 func main() {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	fmt.Println(C())
 }

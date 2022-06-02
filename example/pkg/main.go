@@ -12,7 +12,7 @@ var err1 = errors.New("业务错误处理")
 var err2 = errors.New("其他错误")
 
 func Hello(flag bool) (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 
 	if flag {
 		xerror.Panic(err1, "处理 业务错误处理 失败")
@@ -24,7 +24,7 @@ func Hello(flag bool) (err error) {
 }
 
 func CallHello(flag bool) (gErr error) {
-	defer xerror.Resp(func(err xerror.XErr) {
+	defer xerror.Recovery(func(err xerror.XErr) {
 		// 跳过err1
 		if errors.Is(err, err1) {
 			return
@@ -39,7 +39,7 @@ func CallHello(flag bool) (gErr error) {
 }
 
 func main() {
-	defer xerror.RespExit()
+	defer xerror.RecoverAndExit()
 
 	xerror.Panic(CallHello(true))
 	xerror.Panic(CallHello(false))

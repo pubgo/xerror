@@ -7,32 +7,25 @@ import (
 	"github.com/pubgo/xerror"
 )
 
-func TestErr(t *testing.T) {
-	fmt.Println(xerror.Wrap(xerror.ErrAssert))
-}
-
 func TestRespTest(t *testing.T) {
-	defer xerror.RespTest(t)
-	TestPanic1(t)
+	defer xerror.RecoverTest(t)
+	testPanic1(t)
 }
 
 func TestRespNext(t *testing.T) {
-	defer xerror.RespExit("TestRespNext")
-	TestPanic1(t)
+	defer xerror.RecoverAndExit("TestRespNext")
+	testPanic1(t)
 }
 
-func TestPanic1(t *testing.T) {
-	//defer xerror.RespExit()
-	defer xerror.RespRaise(func(err xerror.XErr) error {
-		return xerror.WrapF(err, "test raise")
-	})
+func testPanic1(t *testing.T) {
+	defer xerror.RecoverAndRaise()
 
 	//xerror.Panic(xerror.New("ok"))
-	xerror.Panic(fmt.Errorf("ss"))
+	xerror.Panic(init1Next())
 }
 
 func init1Next() (err error) {
-	defer xerror.RespErr(&err)
+	defer xerror.RecoverErr(&err)
 	xerror.Panic(fmt.Errorf("test next"))
 	return nil
 }
@@ -40,9 +33,21 @@ func init1Next() (err error) {
 func BenchmarkNoPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = func() (err error) {
-			defer xerror.RespErr(&err)
+			defer xerror.RecoverErr(&err)
 			xerror.Panic(nil)
 			return
+		}()
+	}
+}
+
+func BenchmarkPanic(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		func() {
+			defer func() {
+				recover()
+			}()
+
+			panic("hello")
 		}()
 	}
 }

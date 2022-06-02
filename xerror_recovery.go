@@ -12,12 +12,7 @@ import (
 	"github.com/pubgo/xerror/xerror_core"
 )
 
-var RecoverErr = RespErr
-var Recovery = Resp
-var RecoverTest = RespTest
-var RecoverAndExit = RespExit
-
-func RespErr(gErr *error) {
+func RecoverErr(gErr *error) {
 	val := recover()
 	if val == nil {
 		return
@@ -29,13 +24,17 @@ func RespErr(gErr *error) {
 		return
 	}
 
-	*gErr = &xerror{Err: err, Caller: [2]string{
-		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
-		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
-	}}
+	*gErr = &xerror{
+		Err: err,
+		Msg: err.Error(),
+		Caller: []string{
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
+		},
+	}
 }
 
-func Raise(fns ...interface{}) {
+func RecoverAndRaise(fns ...func(err XErr) error) {
 	val := recover()
 	if val == nil {
 		return
@@ -47,27 +46,9 @@ func Raise(fns ...interface{}) {
 		return
 	}
 
-	panic(&xerror{Err: err, Caller: [2]string{
-		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
-		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
-	}})
-}
-
-func RespRaise(fns ...func(err XErr) error) {
-	val := recover()
-	if val == nil {
-		return
-	}
-
-	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
-		return
-	}
-
-	err1 := &xerror{Err: err}
+	err1 := &xerror{Err: err, Msg: err.Error()}
 	if len(fns) > 0 {
-		err1.Caller = [2]string{
+		err1.Caller = []string{
 			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
 			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
 		}
@@ -76,7 +57,7 @@ func RespRaise(fns ...func(err XErr) error) {
 	panic(err1)
 }
 
-func Resp(fn func(err XErr)) {
+func Recovery(fn func(err XErr)) {
 	Assert(fn == nil, "[fn] should not be nil")
 
 	val := recover()
@@ -90,13 +71,13 @@ func Resp(fn func(err XErr)) {
 		return
 	}
 
-	fn(&xerror{Err: err, Caller: [2]string{
+	fn(&xerror{Err: err, Caller: []string{
 		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
 		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
 	}})
 }
 
-func RespExit(args ...interface{}) {
+func RecoverAndExit(args ...interface{}) {
 	val := recover()
 	if val == nil {
 		return
@@ -108,12 +89,19 @@ func RespExit(args ...interface{}) {
 		return
 	}
 
-	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
+	p(handle(err, func(err *xerror) {
+		err.Detail = fmt.Sprint(args...)
+		err.Caller = append(
+			err.Caller,
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth+2),
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth+3),
+		)
+	}).debugString())
 	printStack()
 	os.Exit(1)
 }
 
-func RespDebug(args ...interface{}) {
+func RecoverTest(t *testing.T, debugs ...bool) {
 	val := recover()
 	if val == nil {
 		return
@@ -125,23 +113,7 @@ func RespDebug(args ...interface{}) {
 		return
 	}
 
-	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
-	printStack()
-}
-
-func RespTest(t *testing.T, debugs ...bool) {
-	val := recover()
-	if val == nil {
-		return
-	}
-
-	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
-		return
-	}
-
-	var msg = handle(err).stackString()
+	var msg = handle(err).debugString()
 
 	if len(debugs) > 0 {
 		p(msg)
@@ -151,7 +123,7 @@ func RespTest(t *testing.T, debugs ...bool) {
 	t.Fatal(msg)
 }
 
-func RespHttp(w http.ResponseWriter, req *http.Request, fns ...func(err error)) {
+func RecoverHttp(w http.ResponseWriter, req *http.Request, fns ...func(err error)) {
 	val := recover()
 	if val == nil {
 		return
@@ -170,7 +142,7 @@ func RespHttp(w http.ResponseWriter, req *http.Request, fns ...func(err error)) 
 	fmt.Fprintln(w, string(dt))
 	fmt.Fprint(w, "\n\n\n\n")
 	fmt.Fprintln(w, "error stack")
-	fmt.Fprintln(w, handle(err).stackString())
+	fmt.Fprintln(w, handle(err).debugString())
 	fmt.Fprint(w, "\n\n\n\n")
 	fmt.Fprintln(w, "stack")
 	buf := make([]byte, 1024*1024)

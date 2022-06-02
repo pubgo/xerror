@@ -5,27 +5,27 @@ import (
 )
 
 func TestAssertEqual(t *testing.T) {
-	defer RespTest(t)
+	defer RecoverTest(t)
 
 	AssertEqual("hello", 1)
 }
 
 func TestCheckNil(t *testing.T) {
-	defer RespTest(t)
+	defer RecoverTest(t)
 
 	var a *int
 	Assert(a == nil, "ok")
 }
 
 func TestCheck(t *testing.T) {
-	defer RespTest(t)
+	defer RecoverTest(t)
 
 	AssertEqual(try(func() { Assert(true, "aaaa") }), nil)
 	Assert(false, "aaaa")
 }
 
 func try(fn func()) (err error) {
-	defer RespErr(&err)
+	defer RecoverErr(&err)
 
 	fn()
 	return nil

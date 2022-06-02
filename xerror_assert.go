@@ -1,57 +1,42 @@
 package xerror
 
 import (
+	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/kr/pretty"
 )
 
-func AssertNil(args ...interface{}) {
-	for i := range args {
-		if args[i] == nil || reflect.ValueOf(args[i]).IsZero() {
-			panic(handle(ErrIsNil, func(err *xerror) { err.Msg = pretty.Sprint(args[i], "is nil") }))
-		}
-	}
-}
-
 func AssertEqual(a, b interface{}, opts ...cmp.Option) {
-	if cmp.Equal(a, b, opts...) {
-		return
+	if !cmp.Equal(a, b, opts...) {
+		panic(handle(errors.New("match error"), func(err *xerror) {
+			err.Detail = fmt.Sprintf("a=%#v b=%#v", a, b)
+		}))
 	}
-
-	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fmt.Sprintf("[%#v] not match [%#v]", a, b) }))
 }
 
 func AssertNotEqual(a, b interface{}, opts ...cmp.Option) {
-	if !cmp.Equal(a, b, opts...) {
-		return
+	if cmp.Equal(a, b, opts...) {
+		panic(handle(errors.New("not match error"), func(err *xerror) {
+			err.Detail = fmt.Sprintf("a=%#v b=%#v", a, b)
+		}))
 	}
-
-	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fmt.Sprintf("[%#v] match [%#v]", a, b) }))
-}
-
-func AssertErr(b bool, format string, a ...interface{}) error {
-	if !b {
-		return nil
-	}
-
-	return fmt.Errorf(format, a...)
 }
 
 func Assert(b bool, format string, a ...interface{}) {
-	if !b {
-		return
+	if b {
+		panic(handle(fmt.Errorf(format, a...)))
 	}
-
-	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fmt.Sprintf(format, a...) }))
 }
 
-func AssertFn(b bool, fn func() string) {
-	if !b {
-		return
+func AssertErr(b bool, err error) {
+	if b {
+		panic(handle(err))
 	}
+}
 
-	panic(handle(ErrAssert, func(err *xerror) { err.Msg = fn() }))
+func AssertFn(b bool, fn func() error) {
+	if b {
+		panic(handle(fn()))
+	}
 }

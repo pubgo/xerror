@@ -10,47 +10,53 @@ import (
 )
 
 type xerror struct {
-	Err    error     `json:"cause,omitempty"`
-	Msg    string    `json:"msg,omitempty"`
-	Caller [2]string `json:"caller,omitempty"`
+	Err    error    `json:"cause,omitempty"`
+	Msg    string   `json:"msg,omitempty"`
+	Detail string   `json:"detail,omitempty"`
+	Caller []string `json:"caller,omitempty"`
 }
 
-func (t *xerror) String() string            { return t.Stack() }
-func (t *xerror) Debug(args ...interface{}) { p(handle(Wrap(t, args...)).stackString()) }
-func (t *xerror) Unwrap() error             { return t.Err }
-func (t *xerror) Cause() error              { return t.Err }
+func (t *xerror) String() string { return t.Stack() }
+func (t *xerror) DebugPrint()    { p(handle(Wrap(t)).debugString()) }
+func (t *xerror) Unwrap() error  { return t.Err }
+func (t *xerror) Cause() error   { return t.Err }
 func (t *xerror) Wrap(args ...interface{}) error {
-	return handle(t, func(err *xerror) { err.Msg = fmt.Sprint(args...) })
+	return handle(t, func(err *xerror) { err.Detail = fmt.Sprint(args...) })
 }
 
 func (t *xerror) WrapF(msg string, args ...interface{}) error {
 	return handle(t, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) })
 }
 
-func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
-	buf.WriteString("========================================================================================================================\n")
-	if xrr.Err != nil {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Red.P("Err"), xrr.Err.Error()))
+func (t *xerror) _p(num int, buf *strings.Builder, xrr *xerror) {
+	if xrr == nil {
+		return
 	}
+
+	buf.WriteString("========================================================================================================================\n")
 	if strings.TrimSpace(xrr.Msg) != "" {
-		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Green.P("Msg"), xrr.Msg))
+		buf.WriteString(fmt.Sprintf("   %s:%d]: %s\n", color.Green.P("Msg"), num, xrr.Msg))
+	}
+
+	if strings.TrimSpace(xrr.Detail) != "" {
+		buf.WriteString(fmt.Sprintf("%s:%d]: %s\n", color.Green.P("Detail"), num, xrr.Detail))
 	}
 
 	for i := range xrr.Caller {
 		if strings.Contains(xrr.Caller[i], "/src/runtime/") {
 			continue
 		}
-		buf.WriteString(fmt.Sprintf("%s]: %s\n", color.Yellow.P("Caller"), xrr.Caller[i]))
+		buf.WriteString(fmt.Sprintf("%s:%d]: %s\n", color.Yellow.P("Caller"), num, xrr.Caller[i]))
 	}
 
 	if errs := trans(xrr.Err); errs != nil {
 		for i := range errs {
-			t._p(buf, errs[i])
+			t._p(num+1, buf, errs[i])
 		}
 	}
 }
 
-func (t *xerror) stackString() string {
+func (t *xerror) debugString() string {
 	if t == nil || t.Err == nil {
 		return ""
 	}
@@ -59,7 +65,7 @@ func (t *xerror) stackString() string {
 	defer buf.Reset()
 
 	buf.WriteString("\n")
-	t._p(buf, t)
+	t._p(0, buf, t)
 	buf.WriteString("========================================================================================================================\n\n")
 	return buf.String()
 }
@@ -70,8 +76,6 @@ func (t *xerror) Is(err error) bool {
 	}
 
 	switch _err := err.(type) {
-	case *xerrorBase:
-		return _err == t.Err
 	case *xerror:
 		return _err == t || _err.Err == t.Err
 	case error:
@@ -91,7 +95,7 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 		}
 
 		if s.Flag('+') {
-			_, _ = fmt.Fprint(s, t.Stack(true))
+			_, _ = fmt.Fprint(s, t.Stack())
 			return
 		}
 
@@ -103,18 +107,11 @@ func (t *xerror) Format(s fmt.State, verb rune) {
 	}
 }
 
-func (t *xerror) Stack(indent ...bool) string {
+func (t *xerror) Stack() string {
 	if t == nil || t.Err == nil {
 		return ""
 	}
 
-	if len(indent) > 0 {
-		dt, err := json.MarshalIndent(t, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-		return string(dt)
-	}
 	dt, err := json.Marshal(t)
 	if err != nil {
 		panic(err)
@@ -124,9 +121,14 @@ func (t *xerror) Stack(indent ...bool) string {
 }
 
 func (t *xerror) As(target interface{}) bool {
-	t1 := reflect.Indirect(reflect.ValueOf(target)).Interface()
+	if t == nil || target == nil {
+		return false
+	}
+
+	var v = reflect.ValueOf(target)
+	t1 := reflect.Indirect(v).Interface()
 	if err, ok := t1.(*xerror); ok {
-		reflect.ValueOf(target).Elem().Set(reflect.ValueOf(err))
+		v.Elem().Set(reflect.ValueOf(err))
 		return true
 	}
 	return false

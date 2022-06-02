@@ -5,21 +5,12 @@ import (
 	"os"
 )
 
-// PanicErrs combine multiple errors
-func PanicErrs(errs ...error) {
-	if len(errs) == 0 {
-		return
-	}
-
-	panic(Combine(errs...))
-}
-
 func Panic(err error, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
 
-	panic(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }))
+	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) }))
 }
 
 func PanicF(err error, msg string, args ...interface{}) {
@@ -27,7 +18,7 @@ func PanicF(err error, msg string, args ...interface{}) {
 		return
 	}
 
-	panic(handle(err, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) }))
+	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) }))
 }
 
 func PanicErr(ret interface{}, err error) interface{} {
@@ -59,7 +50,7 @@ func Exit(err error, args ...interface{}) {
 		return
 	}
 
-	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) }).stackString())
+	p(handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) }).debugString())
 	printStack()
 	os.Exit(1)
 }
@@ -69,7 +60,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 		return
 	}
 
-	p(handle(err, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) }).stackString())
+	p(handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) }).debugString())
 	printStack()
 	os.Exit(1)
 }
@@ -79,7 +70,7 @@ func ExitErr(dat interface{}, err error) interface{} {
 		return dat
 	}
 
-	p(handle(err).stackString())
+	p(handle(err).debugString())
 	printStack()
 	os.Exit(1)
 	return nil
@@ -90,7 +81,7 @@ func Wrap(err error, args ...interface{}) error {
 		return nil
 	}
 
-	return handle(err, func(err *xerror) { err.Msg = fmt.Sprint(args...) })
+	return handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) })
 }
 
 func WrapF(err error, msg string, args ...interface{}) error {
@@ -98,5 +89,5 @@ func WrapF(err error, msg string, args ...interface{}) error {
 		return nil
 	}
 
-	return handle(err, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) })
+	return handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) })
 }

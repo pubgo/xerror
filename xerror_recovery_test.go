@@ -6,8 +6,8 @@ import (
 )
 
 func TestName(t *testing.T) {
-	defer Resp(func(err XErr) {
-		err.Debug()
+	defer Recovery(func(err XErr) {
+		err.DebugPrint()
 	})
 
 	log.Println("test panic")

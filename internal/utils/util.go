@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pubgo/xerror/xerror_core"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -14,6 +15,10 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func CallerWithDepth(cd int) string {
+	if !xerror_core.Conf.IsCaller {
+		return ""
+	}
+
 	var pcs = make([]uintptr, 1)
 	if runtime.Callers(cd, pcs[:]) == 0 {
 		return ""
@@ -25,7 +30,6 @@ func CallerWithDepth(cd int) string {
 		return "unknown type"
 	}
 
-
 	file, line := fn.FileLine(f.pc())
 	return file + ":" + strconv.Itoa(line)
 }
@@ -33,6 +37,10 @@ func CallerWithDepth(cd int) string {
 func CallerWithFunc(fn interface{}) string {
 	if fn == nil {
 		panic("[fn] is nil")
+	}
+
+	if !xerror_core.Conf.IsCaller {
+		return ""
 	}
 
 	var _fn = reflect.ValueOf(fn)
