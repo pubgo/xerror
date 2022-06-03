@@ -43,11 +43,6 @@ func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 		return
 	}
 
-	if xrr.Msg == "" && xrr.Detail == "" {
-		t._p(buf, trans(xrr.Err))
-		return
-	}
-
 	buf.WriteString("========================================================================================================================\n")
 	if xrr.Msg != "" {
 		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Green.P("Msg"), xrr.Msg))
