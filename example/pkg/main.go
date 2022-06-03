@@ -1,39 +1,26 @@
 package main
 
 import (
-	"errors"
-
 	"github.com/pubgo/xerror"
 )
 
 // 单个pkg的error处理
 
-var err1 = errors.New("业务错误处理")
-var err2 = errors.New("其他错误")
+var err1 = &xerror.Err{Msg: "业务错误处理", Detail: "详细信息"}
 
-func Hello(flag bool) (err error) {
+func Hello() (err error) {
 	defer xerror.RecoverErr(&err)
 
-	if flag {
-		xerror.Panic(err1, "处理 业务错误处理 失败")
-	}
-
-	xerror.Panic(err2, "处理 其他错误 失败")
-
+	xerror.Panic(err1, "处理 业务错误处理 失败")
 	return
 }
 
-func CallHello(flag bool) (gErr error) {
+func CallHello() (gErr error) {
 	defer xerror.Recovery(func(err xerror.XErr) {
-		// 跳过err1
-		if errors.Is(err, err1) {
-			return
-		}
-
-		gErr = err
+		gErr = err.WrapF("CallHello wrap")
 	})
 
-	xerror.Panic(Hello(flag))
+	xerror.Panic(Hello())
 
 	return
 }
@@ -41,6 +28,5 @@ func CallHello(flag bool) (gErr error) {
 func main() {
 	defer xerror.RecoverAndExit()
 
-	xerror.Panic(CallHello(true))
-	xerror.Panic(CallHello(false))
+	xerror.Panic(CallHello())
 }

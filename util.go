@@ -60,7 +60,7 @@ func trans(err error) *xerror {
 		return err
 	case interface{ Unwrap() error }:
 		if err.Unwrap() == nil {
-			return nil
+			return &xerror{Detail: fmt.Sprintf("%#v", err)}
 		}
 		return &xerror{Err: err.Unwrap(), Msg: err.Unwrap().Error()}
 	default:

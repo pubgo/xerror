@@ -34,7 +34,7 @@ func (t *xerror) Wrap(args ...interface{}) XErr {
 }
 
 func (t *xerror) WrapF(msg string, args ...interface{}) XErr {
-	return handle(t, func(err *xerror) { err.Msg = fmt.Sprintf(msg, args...) })
+	return handle(t, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) })
 }
 
 func (t *xerror) _p(num int, buf *strings.Builder, xrr *xerror) {
