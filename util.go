@@ -38,9 +38,12 @@ func handleRecover(err *error, val interface{}) {
 
 func handle(err error, fns ...func(err *xerror)) *xerror {
 	err1 := &xerror{Err: err, Msg: err.Error()}
-	err1.Caller = []string{
-		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
-		utils.CallerWithDepth(xerror_core.Conf.CallDepth + 3),
+	for i := 0; ; i++ {
+		var cc = utils.CallerWithDepth(xerror_core.Conf.CallDepth + i)
+		if cc == "" {
+			break
+		}
+		err1.Caller = append(err1.Caller, cc)
 	}
 
 	if len(fns) > 0 {
