@@ -34,16 +34,24 @@ func handleRecover(err *error, val interface{}) {
 	default:
 		*err = fmt.Errorf("%#v\n", _val)
 	}
+
+	*err = handle(*err)
 }
 
 func handle(err error, fns ...func(err *xerror)) *xerror {
-	err1 := &xerror{Err: err, Msg: err.Error()}
-	for i := 0; ; i++ {
-		var cc = utils.CallerWithDepth(xerror_core.Conf.CallDepth + i)
-		if cc == "" {
-			break
+	err1 := &xerror{Err: err}
+	if _, ok := err.(XErr); !ok {
+		for i := 0; ; i++ {
+			var cc = utils.CallerWithDepth(xerror_core.Conf.CallDepth + i)
+			if cc == "" {
+				break
+			}
+			err1.Caller = append(err1.Caller, cc)
 		}
-		err1.Caller = append(err1.Caller, cc)
+	} else {
+		err1.Caller = []string{
+			utils.CallerWithDepth(xerror_core.Conf.CallDepth + 2),
+		}
 	}
 
 	if len(fns) > 0 {

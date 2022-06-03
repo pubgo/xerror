@@ -25,6 +25,7 @@ type xerror struct {
 	Caller []string `json:"caller,omitempty"`
 }
 
+func (t *xerror) xErr()          {}
 func (t *xerror) String() string { return t.Stack() }
 func (t *xerror) DebugPrint()    { p(handle(Wrap(t)).debugString()) }
 func (t *xerror) Unwrap() error  { return t.Err }
@@ -37,28 +38,33 @@ func (t *xerror) WrapF(msg string, args ...interface{}) XErr {
 	return handle(t, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) })
 }
 
-func (t *xerror) _p(num int, buf *strings.Builder, xrr *xerror) {
+func (t *xerror) _p(buf *strings.Builder, xrr *xerror) {
 	if xrr == nil {
 		return
 	}
 
-	buf.WriteString("========================================================================================================================\n")
-	if strings.TrimSpace(xrr.Msg) != "" {
-		buf.WriteString(fmt.Sprintf("   %s:%d]: %s\n", color.Green.P("Msg"), num, xrr.Msg))
+	if xrr.Msg == "" && xrr.Detail == "" {
+		t._p(buf, trans(xrr.Err))
+		return
 	}
 
-	if strings.TrimSpace(xrr.Detail) != "" {
-		buf.WriteString(fmt.Sprintf("%s:%d]: %s\n", color.Green.P("Detail"), num, xrr.Detail))
+	buf.WriteString("========================================================================================================================\n")
+	if xrr.Msg != "" {
+		buf.WriteString(fmt.Sprintf("   %s]: %s\n", color.Green.P("Msg"), xrr.Msg))
+	}
+
+	if xrr.Detail != "" {
+		buf.WriteString(fmt.Sprintf("%s]: %s\n", color.Green.P("Detail"), xrr.Detail))
 	}
 
 	for i := range xrr.Caller {
 		if strings.Contains(xrr.Caller[i], "/src/runtime/") {
 			continue
 		}
-		buf.WriteString(fmt.Sprintf("%s:%d]: %s\n", color.Yellow.P("Caller"), num, xrr.Caller[i]))
+		buf.WriteString(fmt.Sprintf("%s]: %s\n", color.Yellow.P("Caller"), xrr.Caller[i]))
 	}
 
-	t._p(num+1, buf, trans(xrr.Err))
+	t._p(buf, trans(xrr.Err))
 }
 
 func (t *xerror) debugString() string {
@@ -70,7 +76,7 @@ func (t *xerror) debugString() string {
 	defer buf.Reset()
 
 	buf.WriteString("\n")
-	t._p(0, buf, t)
+	t._p(buf, t)
 	buf.WriteString("========================================================================================================================\n\n")
 	return buf.String()
 }
