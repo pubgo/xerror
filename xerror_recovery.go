@@ -35,11 +35,11 @@ func RecoverAndRaise(fns ...func(err XErr) XErr) {
 		return
 	}
 
-	err = handle(err)
+	err1 := handle(err)
 	if len(fns) > 0 {
-		panic(err)
+		panic(fns[0](err1))
 	}
-	panic(err)
+	panic(err1)
 }
 
 func Recovery(fn func(err XErr)) {

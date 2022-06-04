@@ -8,8 +8,10 @@ import (
 
 var err1 = &xerror.Err{Msg: "业务错误处理", Detail: "详细信息"}
 
-func Hello() (err error) {
-	defer xerror.RecoverErr(&err)
+func Hello() {
+	defer xerror.RecoverAndRaise(func(err xerror.XErr) xerror.XErr {
+		return err.Wrap("Hello wrap")
+	})
 
 	xerror.Panic(err1, "处理 业务错误处理 失败")
 	return
@@ -20,7 +22,7 @@ func CallHello() (gErr error) {
 		gErr = err.WrapF("CallHello wrap")
 	})
 
-	xerror.Panic(Hello())
+	Hello()
 
 	return
 }
