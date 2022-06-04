@@ -8,7 +8,7 @@ import (
 	"github.com/pubgo/xerror/xerror_core"
 )
 
-func RecoverErr(gErr *error) {
+func RecoverErr(gErr *error, fns ...func(err XErr) XErr) {
 	val := recover()
 	if val == nil {
 		return
@@ -20,7 +20,12 @@ func RecoverErr(gErr *error) {
 		return
 	}
 
-	*gErr = handle(err)
+	err1 := handle(err)
+	if len(fns) > 0 {
+		*gErr = fns[0](err1)
+		return
+	}
+	*gErr = err1
 }
 
 func RecoverAndRaise(fns ...func(err XErr) XErr) {
