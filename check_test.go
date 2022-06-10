@@ -13,7 +13,7 @@ func TestRespTest(t *testing.T) {
 }
 
 func TestRespNext(t *testing.T) {
-	defer xerror.RecoverAndExit("TestRespNext")
+	defer xerror.RecoverAndExit()
 	testPanic1(t)
 }
 

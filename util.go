@@ -75,7 +75,7 @@ func trans(err error) *xerror {
 		}
 		return &xerror{Err: err.Unwrap(), Msg: err.Unwrap().Error()}
 	default:
-		return nil
+		return &xerror{Msg: err.Error(), Detail: fmt.Sprintf("%#v", err)}
 	}
 }
 
