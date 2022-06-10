@@ -1,13 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 	"runtime"
-	"strconv"
 	"strings"
 
-	"github.com/pubgo/xerror/xerror_core"
-	"github.com/valyala/bytebufferpool"
+	"github.com/pubgo/xerror/xerror_conf"
 )
 
 type frame uintptr
@@ -15,7 +14,7 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func CallerWithDepth(cd int) string {
-	if !xerror_core.Conf.IsCaller {
+	if !xerror_conf.Conf.EnableCaller {
 		return ""
 	}
 
@@ -31,7 +30,7 @@ func CallerWithDepth(cd int) string {
 	}
 
 	file, line := fn.FileLine(f.pc())
-	return file + ":" + strconv.Itoa(line)
+	return fmt.Sprintf("%s:%d", file, line)
 }
 
 func CallerWithFunc(fn interface{}) string {
@@ -39,27 +38,18 @@ func CallerWithFunc(fn interface{}) string {
 		panic("[fn] is nil")
 	}
 
-	if !xerror_core.Conf.IsCaller {
+	if !xerror_conf.Conf.EnableCaller {
 		return ""
 	}
 
 	var _fn = reflect.ValueOf(fn)
 	if !_fn.IsValid() || _fn.Kind() != reflect.Func || _fn.IsNil() {
-		panic("not func type or type is nil")
+		panic("[fn] is not func type or type is nil")
 	}
 
 	var _e = runtime.FuncForPC(_fn.Pointer())
 	var file, line = _e.FileLine(_fn.Pointer())
 
-	buf := bytebufferpool.Get()
-	defer bytebufferpool.Put(buf)
-
-	buf.WriteString(file)
-	buf.WriteString(":")
-	buf.WriteString(strconv.Itoa(line))
-	buf.WriteString(" ")
-
 	ma := strings.Split(_e.Name(), ".")
-	buf.WriteString(ma[len(ma)-1])
-	return buf.String()
+	return fmt.Sprintf("%s:%d %s", file, line, ma[len(ma)-1])
 }

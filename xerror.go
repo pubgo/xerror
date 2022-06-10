@@ -8,13 +8,13 @@ import (
 
 	"github.com/pubgo/xerror/internal/color"
 	"github.com/pubgo/xerror/internal/utils"
-	"github.com/pubgo/xerror/xerror_core"
+	"github.com/pubgo/xerror/xerror_conf"
 )
 
 func New(format string, a ...interface{}) XErr {
 	x := &xerror{}
 	x.Msg = fmt.Sprintf(format, a...)
-	x.Caller = []string{utils.CallerWithDepth(xerror_core.Conf.CallDepth + 1)}
+	x.Caller = []string{utils.CallerWithDepth(xerror_conf.Conf.CallDepth + 1)}
 	return x
 }
 

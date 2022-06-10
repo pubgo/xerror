@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/pubgo/xerror/internal/utils"
-	"github.com/pubgo/xerror/xerror_core"
+	"github.com/pubgo/xerror/xerror_conf"
 )
 
 func RecoverErr(gErr *error, fns ...func(err XErr) XErr) {
@@ -78,7 +78,7 @@ func RecoverAndExit() {
 
 	err1 := handle(err)
 	for i := 0; ; i++ {
-		var cc = utils.CallerWithDepth(xerror_core.Conf.CallDepth + i)
+		var cc = utils.CallerWithDepth(xerror_conf.Conf.CallDepth + i)
 		if cc == "" {
 			break
 		}
@@ -104,7 +104,7 @@ func RecoverTest(t *testing.T, debugs ...bool) {
 
 	err1 := handle(err)
 	for i := 0; ; i++ {
-		var cc = utils.CallerWithDepth(xerror_core.Conf.CallDepth + i)
+		var cc = utils.CallerWithDepth(xerror_conf.Conf.CallDepth + i)
 		if cc == "" {
 			break
 		}
