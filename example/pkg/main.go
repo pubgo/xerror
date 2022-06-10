@@ -13,7 +13,8 @@ func Hello() {
 		return err.Wrap("Hello wrap")
 	})
 
-	xerror.Panic(err1, "处理 业务错误处理 失败")
+	var err2 = xerror.WrapF(err1, "处理 wrap")
+	xerror.Panic(err2, "处理 panic")
 	return
 }
 
