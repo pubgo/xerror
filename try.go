@@ -53,3 +53,15 @@ func TryThrow(fn func()) {
 
 	fn()
 }
+
+func TryVal[T any](fn func() (T, error)) T {
+	checkFn(fn)
+
+	defer RecoverAndRaise(func(err XErr) XErr {
+		return err.WrapF("fn=>", utils.CallerWithFunc(fn))
+	})
+
+	var val, err = fn()
+	Panic(err)
+	return val
+}

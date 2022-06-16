@@ -1,3 +1,3 @@
 module github.com/pubgo/xerror
 
-go 1.14
+go 1.18

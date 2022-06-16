@@ -7,6 +7,29 @@ import (
 	"github.com/pubgo/xerror"
 )
 
+func panicErr() (*xerror.Err, error) {
+	return nil, fmt.Errorf("error")
+}
+
+func panicNoErr() (*xerror.Err, error) {
+	return &xerror.Err{Msg: "ok"}, nil
+}
+
+func TestPanicErr(t *testing.T) {
+	defer xerror.RecoverTest(t)
+	var err = xerror.Try(func() {
+		var ret = xerror.PanicErr(panicErr())
+		fmt.Println(ret == nil)
+	})
+	xerror.Assert(err == nil, "failed")
+
+	err = xerror.Try(func() {
+		var ret = xerror.PanicErr(panicNoErr())
+		fmt.Println(ret.Msg)
+	})
+	xerror.Assert(err != nil, "failed")
+}
+
 func TestRespTest(t *testing.T) {
 	defer xerror.RecoverTest(t)
 	testPanic1(t)

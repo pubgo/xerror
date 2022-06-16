@@ -21,7 +21,7 @@ func PanicF(err error, msg string, args ...interface{}) {
 	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) }))
 }
 
-func PanicErr(ret interface{}, err error) interface{} {
+func PanicErr[T any](ret T, err error) T {
 	if isErrNil(err) {
 		return ret
 	}
@@ -65,15 +65,15 @@ func ExitF(err error, msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func ExitErr(dat interface{}, err error) interface{} {
+func ExitErr[T any](ret T, err error) T {
 	if isErrNil(err) {
-		return dat
+		return ret
 	}
 
 	p(handle(err).debugString())
 	printStack()
 	os.Exit(1)
-	return nil
+	return ret
 }
 
 func Wrap(err error, args ...interface{}) error {
