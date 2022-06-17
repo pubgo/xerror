@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/pubgo/xerror"
+	"github.com/stretchr/testify/assert"
 )
 
 func panicErr() (*xerror.Err, error) {
@@ -16,18 +17,16 @@ func panicNoErr() (*xerror.Err, error) {
 }
 
 func TestPanicErr(t *testing.T) {
-	defer xerror.RecoverTest(t)
-	var err = xerror.Try(func() {
+	var is = assert.New(t)
+	is.Panics(func() {
 		var ret = xerror.PanicErr(panicErr())
 		fmt.Println(ret == nil)
 	})
-	xerror.Assert(err == nil, "failed")
 
-	err = xerror.Try(func() {
+	is.NotPanics(func() {
 		var ret = xerror.PanicErr(panicNoErr())
 		fmt.Println(ret.Msg)
 	})
-	xerror.Assert(err != nil, "failed")
 }
 
 func TestRespTest(t *testing.T) {

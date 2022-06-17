@@ -78,18 +78,3 @@ func printStack() {
 
 	debug.PrintStack()
 }
-
-func Cause(err error) error {
-	if isErrNil(err) {
-		return nil
-	}
-
-	for {
-		rErr := errors.Unwrap(err)
-		if isErrNil(rErr) {
-			return err
-		}
-
-		err = rErr
-	}
-}

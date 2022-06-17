@@ -1,7 +1,5 @@
 package xerror
 
-const Name = "xerror"
-
 type XErr interface {
 	xErr()
 	Error() string
