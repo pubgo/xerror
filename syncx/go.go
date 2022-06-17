@@ -22,7 +22,7 @@ func GoChan[T any](fn func() *Value[T]) chan *Value[T] {
 		})
 
 		if val := fn(); val == nil {
-			ch <- Nil[T]()
+			ch <- new(Value[T])
 		} else {
 			ch <- val
 		}
@@ -95,4 +95,3 @@ func Timeout(dur time.Duration, fn func()) (gErr error) {
 		return
 	}
 }
-

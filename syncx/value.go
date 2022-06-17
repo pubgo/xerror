@@ -20,7 +20,3 @@ func OK[T any](val T, err ...error) *Value[T] {
 func Err[T any](err error) *Value[T] {
 	return &Value[T]{err: err}
 }
-
-func Nil[T any]() *Value[T] {
-	return &Value[T]{}
-}
