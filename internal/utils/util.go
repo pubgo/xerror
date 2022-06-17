@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pubgo/xerror/xerror_conf"
+	"github.com/pubgo/funk/funkonf"
 )
 
 type frame uintptr
@@ -14,7 +14,7 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func CallerWithDepth(cd int) string {
-	if !xerror_conf.Conf.EnableCaller {
+	if !funkonf.Conf.EnableCaller {
 		return ""
 	}
 
@@ -38,7 +38,7 @@ func CallerWithFunc(fn interface{}) string {
 		panic("[fn] is nil")
 	}
 
-	if !xerror_conf.Conf.EnableCaller {
+	if !funkonf.Conf.EnableCaller {
 		return ""
 	}
 

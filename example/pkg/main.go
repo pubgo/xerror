@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk"
 )
 
 // 单个pkg的error处理
@@ -13,8 +13,8 @@ func Hello() {
 		return err.Wrap("Hello wrap")
 	})
 
-	var err2 = funk.WrapF(err1, "处理 wrap")
-	funk.Panic(err2, "处理 panic")
+	var err2 = funk.WrapMsg(err1, "处理 wrap")
+	funk.MustMsg(err2, "处理 panic")
 	return
 }
 
@@ -31,5 +31,5 @@ func CallHello() (gErr error) {
 func main() {
 	defer funk.RecoverAndExit()
 
-	funk.Panic(CallHello())
+	funk.Must(CallHello())
 }

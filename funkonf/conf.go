@@ -1,4 +1,4 @@
-package xerror_conf
+package funkonf
 
 type conf struct {
 	EnableCaller bool

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk"
 )
 
 // 应用的集成开发, 在最后扑捉panic

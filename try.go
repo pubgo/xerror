@@ -1,8 +1,6 @@
 package funk
 
-import (
-	"github.com/pubgo/xerror/internal/utils"
-)
+import "github.com/pubgo/funk/internal/utils"
 
 func checkFn(fn interface{}) {
 	if fn == nil {
@@ -21,7 +19,7 @@ func Try(fn func()) (gErr error) {
 	return
 }
 
-func TryErr(gErr *error, fn func()) {
+func TryWith(gErr *error, fn func()) {
 	checkFn(fn)
 
 	defer Recovery(func(err XErr) {
@@ -29,8 +27,6 @@ func TryErr(gErr *error, fn func()) {
 	})
 
 	fn()
-
-	return
 }
 
 func TryCatch(fn func(), catch func(err error)) {
@@ -54,18 +50,17 @@ func TryThrow(fn func()) {
 	fn()
 }
 
-func TryVal[T any](fn func() (T, error), cache func(val T)) (gErr error) {
-	defer RecoverErr(&gErr, func(err XErr) XErr {
-		return err.WrapF("fn=>", utils.CallerWithFunc(fn))
+func TryVal[T any](fn func() (T, error), cache func(err error)) T {
+	defer Recovery(func(err XErr) {
+		cache(err.WrapF("fn=>", utils.CallerWithFunc(fn)))
 	})
 
 	checkFn(fn)
 
 	val, err := fn()
-	if err != nil {
-		return err
+	if err == nil {
+		return val
 	}
-
-	cache(val)
-	return nil
+	cache(err)
+	return val
 }

@@ -25,13 +25,5 @@ func (e Err) Error() string {
 		return e.Err.Error()
 	}
 
-	if e.Msg != "" {
-		return e.Msg
-	}
-
-	if e.Detail != "" {
-		return e.Detail
-	}
-
-	return "unknown error"
+	return e.String()
 }

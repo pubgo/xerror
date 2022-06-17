@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Panic(err error, args ...interface{}) {
+func Must(err error, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -13,7 +13,7 @@ func Panic(err error, args ...interface{}) {
 	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) }))
 }
 
-func PanicF(err error, msg string, args ...interface{}) {
+func MustMsg(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -21,23 +21,7 @@ func PanicF(err error, msg string, args ...interface{}) {
 	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) }))
 }
 
-func PanicErr[T any](ret T, err error) T {
-	if isErrNil(err) {
-		return ret
-	}
-
-	panic(handle(err))
-}
-
-func PanicBytes(ret []byte, err error) []byte {
-	if isErrNil(err) {
-		return ret
-	}
-
-	panic(handle(err))
-}
-
-func PanicStr(ret string, err error) string {
+func Must1[T any](ret T, err error) T {
 	if isErrNil(err) {
 		return ret
 	}
@@ -55,7 +39,7 @@ func Exit(err error, args ...interface{}) {
 	os.Exit(1)
 }
 
-func ExitF(err error, msg string, args ...interface{}) {
+func ExitMsg(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -65,7 +49,7 @@ func ExitF(err error, msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func ExitErr[T any](ret T, err error) T {
+func Exit1[T any](ret T, err error) T {
 	if isErrNil(err) {
 		return ret
 	}
@@ -84,7 +68,7 @@ func Wrap(err error, args ...interface{}) error {
 	return handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) })
 }
 
-func WrapF(err error, msg string, args ...interface{}) error {
+func WrapMsg(err error, msg string, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil
 	}

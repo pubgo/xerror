@@ -24,9 +24,10 @@ func TestTryThrow(t *testing.T) {
 func TestTryVal(t *testing.T) {
 	defer RecoverTest(t)
 
-	Panic(TryVal(func() (*Err, error) {
+	var v = TryVal(func() (*Err, error) {
 		return &Err{Msg: "ok"}, nil
-	}, func(val *Err) {
-		fmt.Println(val.Msg)
-	}))
+	}, func(err error) {
+		fmt.Println(err)
+	})
+	fmt.Println(v)
 }

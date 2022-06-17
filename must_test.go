@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pubgo/xerror"
+	"github.com/pubgo/funk"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,12 +19,12 @@ func panicNoErr() (*funk.Err, error) {
 func TestPanicErr(t *testing.T) {
 	var is = assert.New(t)
 	is.Panics(func() {
-		var ret = funk.PanicErr(panicErr())
+		var ret = funk.Must1(panicErr())
 		fmt.Println(ret == nil)
 	})
 
 	is.NotPanics(func() {
-		var ret = funk.PanicErr(panicNoErr())
+		var ret = funk.Must1(panicNoErr())
 		fmt.Println(ret.Msg)
 	})
 }
@@ -42,13 +42,13 @@ func TestRespNext(t *testing.T) {
 func testPanic1(t *testing.T) {
 	defer funk.RecoverAndRaise()
 
-	//xerror.Panic(xerror.New("ok"))
-	funk.Panic(init1Next())
+	//xerror.Must(xerror.New("ok"))
+	funk.Must(init1Next())
 }
 
 func init1Next() (err error) {
 	defer funk.RecoverErr(&err)
-	funk.Panic(fmt.Errorf("test next"))
+	funk.Must(fmt.Errorf("test next"))
 	return nil
 }
 
@@ -56,7 +56,7 @@ func BenchmarkNoPanic(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = func() (err error) {
 			defer funk.RecoverErr(&err)
-			funk.Panic(nil)
+			funk.Must(nil)
 			return
 		}()
 	}

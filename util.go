@@ -6,8 +6,8 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/pubgo/xerror/internal/utils"
-	"github.com/pubgo/xerror/xerror_conf"
+	"github.com/pubgo/funk/funkonf"
+	"github.com/pubgo/funk/internal/utils"
 )
 
 func isErrNil(err error) bool { return err == nil }
@@ -34,7 +34,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 	err1 := &xerror{Err: err}
 	if _, ok := err.(XErr); !ok {
 		for i := 0; ; i++ {
-			var cc = utils.CallerWithDepth(xerror_conf.Conf.CallDepth + i)
+			var cc = utils.CallerWithDepth(funkonf.Conf.CallDepth + i)
 			if cc == "" {
 				break
 			}
@@ -42,7 +42,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 		}
 	} else {
 		err1.Caller = []string{
-			utils.CallerWithDepth(xerror_conf.Conf.CallDepth + 2),
+			utils.CallerWithDepth(funkonf.Conf.CallDepth + 2),
 		}
 	}
 
@@ -72,7 +72,7 @@ func trans(err error) *xerror {
 }
 
 func printStack() {
-	if !xerror_conf.Conf.PrintStack {
+	if !funkonf.Conf.PrintStack {
 		return
 	}
 

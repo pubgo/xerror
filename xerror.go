@@ -6,15 +6,15 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pubgo/xerror/internal/color"
-	"github.com/pubgo/xerror/internal/utils"
-	"github.com/pubgo/xerror/xerror_conf"
+	"github.com/pubgo/funk/funkonf"
+	"github.com/pubgo/funk/internal/color"
+	"github.com/pubgo/funk/internal/utils"
 )
 
 func New(format string, a ...interface{}) XErr {
 	x := &xerror{}
 	x.Msg = fmt.Sprintf(format, a...)
-	x.Caller = []string{utils.CallerWithDepth(xerror_conf.Conf.CallDepth + 1)}
+	x.Caller = []string{utils.CallerWithDepth(funkonf.Conf.CallDepth + 1)}
 	return x
 }
 
