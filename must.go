@@ -68,6 +68,14 @@ func Wrap(err error, args ...interface{}) error {
 	return handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) })
 }
 
+func WrapFn(err error, fn func(err XErr) XErr) error {
+	if isErrNil(err) {
+		return nil
+	}
+
+	return fn(handle(err))
+}
+
 func WrapMsg(err error, msg string, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil

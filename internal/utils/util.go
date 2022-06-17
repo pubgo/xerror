@@ -35,7 +35,7 @@ func CallerWithDepth(cd int) string {
 
 func CallerWithFunc(fn interface{}) string {
 	if fn == nil {
-		panic("[fn] is nil")
+		return ""
 	}
 
 	if !funkonf.Conf.EnableCaller {

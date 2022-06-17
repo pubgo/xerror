@@ -3,7 +3,24 @@ package funk
 import (
 	"fmt"
 	"testing"
+
+	"github.com/pubgo/funk/funkonf"
 )
+
+func testFunc() (err error) {
+	defer RecoverErr(&err, func(err XErr) XErr {
+		return err.WrapF("test func")
+	})
+	Must(Err{Msg: "test error"})
+	return
+}
+
+func TestTryLog(t *testing.T) {
+	funkonf.Conf.Debug = true
+	TryAndLog(func() {
+		Must(testFunc())
+	})
+}
 
 func TestTryCatch(t *testing.T) {
 	TryCatch(

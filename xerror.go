@@ -27,9 +27,16 @@ type xerror struct {
 
 func (t *xerror) xErr()          {}
 func (t *xerror) String() string { return t.Stack() }
-func (t *xerror) DebugPrint()    { p(handle(Wrap(t)).debugString()) }
-func (t *xerror) Unwrap() error  { return t.Err }
-func (t *xerror) Cause() error   { return t.Err }
+func (t *xerror) DebugPrint() {
+	if !funkonf.Conf.Debug {
+		return
+	}
+
+	p(handle(Wrap(t)).debugString())
+}
+
+func (t *xerror) Unwrap() error { return t.Err }
+func (t *xerror) Cause() error  { return t.Err }
 func (t *xerror) Wrap(args ...interface{}) XErr {
 	return handle(t, func(err *xerror) { err.Detail = fmt.Sprint(args...) })
 }

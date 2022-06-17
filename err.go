@@ -3,9 +3,9 @@ package funk
 import "fmt"
 
 type Err struct {
-	Err    error
-	Msg    string
-	Detail string
+	Err    error  `json:"err"`
+	Msg    string `json:"msg"`
+	Detail string `json:"detail"`
 }
 
 func (e Err) Unwrap() error {

@@ -1,61 +1,74 @@
 package funk
 
-import "github.com/pubgo/funk/internal/utils"
-
-func checkFn(fn interface{}) {
-	if fn == nil {
-		panic("[fn] should not be nil")
-	}
-}
+import (
+	"github.com/pubgo/funk/internal/utils"
+	"k8s.io/klog/v2"
+)
 
 func Try(fn func()) (gErr error) {
-	checkFn(fn)
-
-	defer Recovery(func(err XErr) {
-		gErr = err.WrapF("fn=>%s", utils.CallerWithFunc(fn))
+	defer RecoverErr(&gErr, func(err XErr) XErr {
+		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 	})
+
+	Assert(fn == nil, "[fn] is nil")
 
 	fn()
 	return
 }
 
-func TryWith(gErr *error, fn func()) {
-	checkFn(fn)
-
-	defer Recovery(func(err XErr) {
-		*gErr = err.WrapF("fn=>%s", utils.CallerWithFunc(fn))
+func TryWith(err *error, fn func()) {
+	defer RecoverErr(err, func(err XErr) XErr {
+		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 	})
+
+	Assert(fn == nil, "[fn] is nil")
+
+	fn()
+}
+
+func TryAndLog(fn func(), catch ...func(err XErr) XErr) {
+	defer Recovery(func(err XErr) {
+		if len(catch) > 0 {
+			err = catch[0](err)
+		}
+
+		err = err.WrapF("fn=%s", utils.CallerWithFunc(fn))
+		err.DebugPrint()
+		klog.Error(err.Error(), " ", err)
+	})
+
+	Assert(fn == nil, "[fn] is nil")
 
 	fn()
 }
 
 func TryCatch(fn func(), catch func(err error)) {
-	checkFn(fn)
-	checkFn(catch)
-
 	defer Recovery(func(err XErr) {
-		catch(err.WrapF("fn=>%s", utils.CallerWithFunc(fn)))
+		catch(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 	})
+
+	Assert(fn == nil, "[fn] is nil")
+	Assert(catch == nil, "[catch] is nil")
 
 	fn()
 }
 
 func TryThrow(fn func()) {
-	checkFn(fn)
-
 	defer RecoverAndRaise(func(err XErr) XErr {
-		return err.WrapF("fn=>", utils.CallerWithFunc(fn))
+		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 	})
+
+	Assert(fn == nil, "[fn] is nil")
 
 	fn()
 }
 
 func TryRet[T any](fn func() (T, error), cache func(err error)) T {
 	defer Recovery(func(err XErr) {
-		cache(err.WrapF("fn=>", utils.CallerWithFunc(fn)))
+		cache(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 	})
 
-	checkFn(fn)
+	Assert(fn == nil, "[fn] is nil")
 
 	val, err := fn()
 	if err == nil {
