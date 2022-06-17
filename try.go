@@ -1,4 +1,4 @@
-package xerror
+package funk
 
 import (
 	"github.com/pubgo/xerror/internal/utils"

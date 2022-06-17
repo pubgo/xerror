@@ -6,20 +6,20 @@ import (
 
 // 单个pkg的error处理
 
-var err1 = &xerror.Err{Msg: "业务错误处理", Detail: "详细信息"}
+var err1 = &funk.Err{Msg: "业务错误处理", Detail: "详细信息"}
 
 func Hello() {
-	defer xerror.RecoverAndRaise(func(err xerror.XErr) xerror.XErr {
+	defer funk.RecoverAndRaise(func(err funk.XErr) funk.XErr {
 		return err.Wrap("Hello wrap")
 	})
 
-	var err2 = xerror.WrapF(err1, "处理 wrap")
-	xerror.Panic(err2, "处理 panic")
+	var err2 = funk.WrapF(err1, "处理 wrap")
+	funk.Panic(err2, "处理 panic")
 	return
 }
 
 func CallHello() (gErr error) {
-	defer xerror.Recovery(func(err xerror.XErr) {
+	defer funk.Recovery(func(err funk.XErr) {
 		gErr = err.WrapF("CallHello wrap")
 	})
 
@@ -29,7 +29,7 @@ func CallHello() (gErr error) {
 }
 
 func main() {
-	defer xerror.RecoverAndExit()
+	defer funk.RecoverAndExit()
 
-	xerror.Panic(CallHello())
+	funk.Panic(CallHello())
 }

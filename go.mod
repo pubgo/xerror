@@ -1,4 +1,4 @@
-module github.com/pubgo/xerror
+module github.com/pubgo/funk
 
 go 1.18
 
