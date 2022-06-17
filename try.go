@@ -50,7 +50,7 @@ func TryThrow(fn func()) {
 	fn()
 }
 
-func TryVal[T any](fn func() (T, error), cache func(err error)) T {
+func TryRet[T any](fn func() (T, error), cache func(err error)) T {
 	defer Recovery(func(err XErr) {
 		cache(err.WrapF("fn=>", utils.CallerWithFunc(fn)))
 	})
