@@ -1,6 +1,9 @@
 package funk
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Err struct {
 	Err    error  `json:"err"`
@@ -13,11 +16,11 @@ func (e Err) Unwrap() error {
 		return e.Err
 	}
 
-	return fmt.Errorf("%s, detail=%s", e.Msg, e.Detail)
+	return errors.New(e.String())
 }
 
 func (e Err) String() string {
-	return fmt.Sprintf("%s, err=%v detail=%s", e.Msg, e.Err, e.Detail)
+	return fmt.Sprintf("msg=%s detail=%s", e.Msg, e.Detail)
 }
 
 func (e Err) Error() string {

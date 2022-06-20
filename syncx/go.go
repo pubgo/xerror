@@ -38,14 +38,15 @@ func GoSafe(fn func(), catch ...func(err funk.XErr) funk.XErr) {
 }
 
 // GoCtx 可取消并发处理
-func GoCtx(fn func(ctx context.Context), cb ...func(err error)) context.CancelFunc {
+func GoCtx(fn func(ctx context.Context), cb ...func(err funk.XErr)) context.CancelFunc {
 	funk.Assert(fn == nil, "[fn] is nil")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
 		defer funk.Recovery(func(err funk.XErr) {
-			if len(cb) == 0 {
+			if len(cb) != 0 {
+				cb[0](err)
 				return
 			}
 
@@ -76,10 +77,12 @@ func GoDelay(fn func(), durations ...time.Duration) {
 
 // Timeout 超时处理
 func Timeout(dur time.Duration, fn func()) (gErr error) {
-	defer funk.RecoverErr(&gErr)
-
 	funk.Assert(dur <= 0, "[Timeout] [dur] should not be less than zero")
 	funk.Assert(fn == nil, "[Timeout] [fn] is nil")
+
+	defer funk.RecoverErr(&gErr, func(err funk.XErr) funk.XErr {
+		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
+	})
 
 	var done = make(chan struct{})
 
@@ -90,7 +93,7 @@ func Timeout(dur time.Duration, fn func()) (gErr error) {
 
 	select {
 	case <-time.After(dur):
-		return funk.WrapMsg(context.DeadlineExceeded, "fn=%s", utils.CallerWithFunc(fn))
+		return context.DeadlineExceeded
 	case <-done:
 		return
 	}

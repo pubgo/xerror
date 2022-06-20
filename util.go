@@ -24,7 +24,7 @@ func handleRecover(err *error, val interface{}) {
 	case string:
 		*err = errors.New(_val)
 	default:
-		*err = fmt.Errorf("%#v\n", _val)
+		*err = fmt.Errorf("%#v", _val)
 	}
 
 	*err = handle(*err)
