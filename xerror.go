@@ -11,10 +11,12 @@ import (
 	"github.com/pubgo/funk/internal/utils"
 )
 
-func New(format string, a ...interface{}) XErr {
+const callStackDepth = 2
+
+func NewErr(format string, a ...interface{}) XErr {
 	x := &xerror{}
 	x.Msg = fmt.Sprintf(format, a...)
-	x.Caller = []string{utils.CallerWithDepth(funkonf.Conf.CallDepth + 1)}
+	x.Caller = []string{utils.CallerWithDepth(callStackDepth + 1)}
 	return x
 }
 

@@ -34,7 +34,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 	err1 := &xerror{Err: err}
 	if _, ok := err.(XErr); !ok {
 		for i := 0; ; i++ {
-			var cc = utils.CallerWithDepth(funkonf.Conf.CallDepth + i)
+			var cc = utils.CallerWithDepth(callStackDepth + i)
 			if cc == "" {
 				break
 			}
@@ -42,7 +42,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 		}
 	} else {
 		err1.Caller = []string{
-			utils.CallerWithDepth(funkonf.Conf.CallDepth + 2),
+			utils.CallerWithDepth(callStackDepth + 2),
 		}
 	}
 

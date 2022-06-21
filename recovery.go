@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pubgo/funk/funkonf"
 	"github.com/pubgo/funk/internal/utils"
 )
 
@@ -78,7 +77,7 @@ func RecoverAndExit() {
 
 	err1 := handle(err)
 	for i := 0; ; i++ {
-		var cc = utils.CallerWithDepth(funkonf.Conf.CallDepth + i)
+		var cc = utils.CallerWithDepth(callStackDepth + i)
 		if cc == "" {
 			break
 		}
@@ -104,7 +103,7 @@ func RecoverTest(t *testing.T, debugs ...bool) {
 
 	err1 := handle(err)
 	for i := 0; ; i++ {
-		var cc = utils.CallerWithDepth(funkonf.Conf.CallDepth + i)
+		var cc = utils.CallerWithDepth(callStackDepth + i)
 		if cc == "" {
 			break
 		}
