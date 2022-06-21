@@ -3,6 +3,7 @@ module github.com/pubgo/funk
 go 1.18
 
 require (
+	github.com/iancoleman/strcase v0.2.0
 	github.com/stretchr/testify v1.7.2
 	github.com/valyala/fastrand v1.1.0
 	go.uber.org/atomic v1.9.0

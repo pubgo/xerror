@@ -57,5 +57,5 @@ func (t *Set) Each(fn interface{}) {
 	funk.Assert(fn == nil, "[fn] should not be nil")
 
 	vfn := reflect.ValueOf(fn)
-	t.m.Range(func(key, value interface{}) bool { _ = vfn.Call(Of(reflect.ValueOf(key))); return true })
+	t.m.Range(func(key, value interface{}) bool { _ = vfn.Call(ListOf(reflect.ValueOf(key))); return true })
 }

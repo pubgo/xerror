@@ -22,11 +22,11 @@ func (t *SMap) Each(fn interface{}) (err error) {
 	onlyKey := reflect.TypeOf(fn).NumIn() == 1
 	t.data.Range(func(key, value interface{}) bool {
 		if onlyKey {
-			_ = vfn.Call(Of(reflect.ValueOf(key)))
+			_ = vfn.Call(ListOf(reflect.ValueOf(key)))
 			return true
 		}
 
-		_ = vfn.Call(Of(reflect.ValueOf(key), reflect.ValueOf(value)))
+		_ = vfn.Call(ListOf(reflect.ValueOf(key), reflect.ValueOf(value)))
 		return true
 	})
 

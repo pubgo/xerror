@@ -9,23 +9,20 @@ import (
 	"k8s.io/klog/v2"
 )
 
+func Async[T any](fn func() Value[T]) chan Value[T] { return GoChan[T](fn) }
+
 // GoChan 通过chan的方式同步执行异步任务
-func GoChan[T any](fn func() *Value[T]) chan *Value[T] {
+func GoChan[T any](fn func() Value[T]) chan Value[T] {
 	funk.Assert(fn == nil, "[fn] is nil")
 
-	var ch = make(chan *Value[T])
+	var ch = make(chan Value[T])
 
 	go func() {
 		defer close(ch)
 		defer funk.Recovery(func(err funk.XErr) {
 			ch <- Err[T](err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 		})
-
-		if val := fn(); val == nil {
-			ch <- new(Value[T])
-		} else {
-			ch <- val
-		}
+		ch <- fn()
 	}()
 
 	return ch
