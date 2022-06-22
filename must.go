@@ -13,7 +13,7 @@ func Must(err error, args ...interface{}) {
 	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) }))
 }
 
-func MustMsg(err error, msg string, args ...interface{}) {
+func MustF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -39,7 +39,7 @@ func Exit(err error, args ...interface{}) {
 	os.Exit(1)
 }
 
-func ExitMsg(err error, msg string, args ...interface{}) {
+func ExitF(err error, msg string, args ...interface{}) {
 	if isErrNil(err) {
 		return
 	}
@@ -76,7 +76,7 @@ func WrapFn(err error, fn func(err XErr) XErr) error {
 	return fn(handle(err))
 }
 
-func WrapMsg(err error, msg string, args ...interface{}) error {
+func WrapF(err error, msg string, args ...interface{}) error {
 	if isErrNil(err) {
 		return nil
 	}

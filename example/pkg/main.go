@@ -13,8 +13,8 @@ func Hello() {
 		return err.Wrap("Hello wrap")
 	})
 
-	var err2 = funk.WrapMsg(err1, "处理 wrap")
-	funk.MustMsg(err2, "处理 panic")
+	var err2 = funk.WrapF(err1, "处理 wrap")
+	funk.MustF(err2, "处理 panic")
 	return
 }
 
