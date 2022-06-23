@@ -42,7 +42,7 @@ func TryAndLog(fn func(), catch ...func(err XErr) XErr) {
 	fn()
 }
 
-func TryCatch(fn func(), catch func(err error)) {
+func TryCatch(fn func(), catch func(err XErr)) {
 	Assert(fn == nil, "[fn] is nil")
 	Assert(catch == nil, "[catch] is nil")
 
@@ -63,7 +63,7 @@ func TryThrow(fn func()) {
 	fn()
 }
 
-func TryRet[T any](fn func() (T, error), cache func(err error)) T {
+func TryRet[T any](fn func() (T, error), cache func(err XErr)) T {
 	Assert(fn == nil, "[fn] is nil")
 
 	defer Recovery(func(err XErr) {
@@ -74,6 +74,6 @@ func TryRet[T any](fn func() (T, error), cache func(err error)) T {
 	if err == nil {
 		return val
 	}
-	cache(err)
+	cache(handle(err))
 	return val
 }

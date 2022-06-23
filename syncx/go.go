@@ -6,21 +6,22 @@ import (
 
 	"github.com/pubgo/funk"
 	"github.com/pubgo/funk/internal/utils"
+	"github.com/pubgo/funk/typex"
 	"k8s.io/klog/v2"
 )
 
-func Async[T any](fn func() Value[T]) chan Value[T] { return GoChan[T](fn) }
+func Async[T any](fn func() typex.Value[T]) chan typex.Value[T] { return GoChan[T](fn) }
 
 // GoChan 通过chan的方式同步执行异步任务
-func GoChan[T any](fn func() Value[T]) chan Value[T] {
+func GoChan[T any](fn func() typex.Value[T]) chan typex.Value[T] {
 	funk.Assert(fn == nil, "[fn] is nil")
 
-	var ch = make(chan Value[T])
+	var ch = make(chan typex.Value[T])
 
 	go func() {
 		defer close(ch)
 		defer funk.Recovery(func(err funk.XErr) {
-			ch <- Err[T](err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
+			ch <- typex.Err[T](err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 		})
 		ch <- fn()
 	}()

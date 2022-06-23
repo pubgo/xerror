@@ -1,4 +1,4 @@
-package syncx
+package typex
 
 import "github.com/pubgo/funk"
 
