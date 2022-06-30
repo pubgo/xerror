@@ -25,7 +25,7 @@ func TestTryLog(t *testing.T) {
 func TestTryCatch(t *testing.T) {
 	TryCatch(
 		func() { panic("ok") },
-		func(err error) {
+		func(err XErr) {
 			fmt.Println(err.Error(), err)
 		})
 }
@@ -43,7 +43,7 @@ func TestTryVal(t *testing.T) {
 
 	var v = TryRet(func() (*Err, error) {
 		return &Err{Msg: "ok"}, nil
-	}, func(err error) {
+	}, func(err XErr) {
 		fmt.Println(err)
 	})
 	fmt.Println(v)
