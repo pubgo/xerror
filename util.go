@@ -20,3 +20,10 @@ func If(ok bool, fn func()) {
 		fn()
 	}
 }
+
+func Map[T any](data []T, handle func(arg T) T) []T {
+	for i := range data {
+		data[i] = handle(data[i])
+	}
+	return data
+}
