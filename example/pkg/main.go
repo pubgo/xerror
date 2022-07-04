@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/xerr"
 )
 
 // 单个pkg的error处理
@@ -9,7 +10,7 @@ import (
 var err1 = &funk.Err{Msg: "业务错误处理", Detail: "详细信息"}
 
 func Hello() {
-	defer funk.RecoverAndRaise(func(err funk.XErr) funk.XErr {
+	defer funk.RecoverAndRaise(func(err xerr.XErr) xerr.XErr {
 		return err.Wrap("Hello wrap")
 	})
 
@@ -19,7 +20,7 @@ func Hello() {
 }
 
 func CallHello() (gErr error) {
-	defer funk.Recovery(func(err funk.XErr) {
+	defer funk.Recovery(func(err xerr.XErr) {
 		gErr = err.WrapF("CallHello wrap")
 	})
 

@@ -1,12 +1,13 @@
 package funk
 
 import (
+	"github.com/pubgo/funk/xerr"
 	"log"
 	"testing"
 )
 
 func TestName(t *testing.T) {
-	defer Recovery(func(err XErr) {
+	defer Recovery(func(err xerr.XErr) {
 		err.DebugPrint()
 	})
 

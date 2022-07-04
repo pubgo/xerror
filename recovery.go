@@ -2,24 +2,23 @@ package funk
 
 import (
 	"os"
-	"testing"
 
-	"github.com/pubgo/funk/internal/utils"
+	"github.com/pubgo/funk/xerr"
 )
 
-func RecoverErr(gErr *error, fns ...func(err XErr) XErr) {
+func RecoverErr(gErr *error, fns ...func(err xerr.XErr) xerr.XErr) {
 	val := recover()
 	if val == nil {
 		return
 	}
 
 	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
+	xerr.ParseErr(&err, val)
+	if err == nil {
 		return
 	}
 
-	err1 := handle(err)
+	err1 := xerr.WrapXErr(err)
 	if len(fns) > 0 {
 		*gErr = fns[0](err1)
 		return
@@ -27,26 +26,26 @@ func RecoverErr(gErr *error, fns ...func(err XErr) XErr) {
 	*gErr = err1
 }
 
-func RecoverAndRaise(fns ...func(err XErr) XErr) {
+func RecoverAndRaise(fns ...func(err xerr.XErr) xerr.XErr) {
 	val := recover()
 	if val == nil {
 		return
 	}
 
 	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
+	xerr.ParseErr(&err, val)
+	if err == nil {
 		return
 	}
 
-	err1 := handle(err)
+	err1 := xerr.WrapXErr(err)
 	if len(fns) > 0 {
 		panic(fns[0](err1))
 	}
 	panic(err1)
 }
 
-func Recovery(fn func(err XErr)) {
+func Recovery(fn func(err xerr.XErr)) {
 	Assert(fn == nil, "[fn] should not be nil")
 
 	val := recover()
@@ -55,12 +54,12 @@ func Recovery(fn func(err XErr)) {
 	}
 
 	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
+	xerr.ParseErr(&err, val)
+	if err == nil {
 		return
 	}
 
-	fn(handle(err))
+	fn(xerr.WrapXErr(err))
 }
 
 func RecoverAndExit() {
@@ -70,52 +69,11 @@ func RecoverAndExit() {
 	}
 
 	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
+	xerr.ParseErr(&err, val)
+	if err == nil {
 		return
 	}
 
-	err1 := handle(err)
-	for i := 0; ; i++ {
-		var cc = utils.CallerWithDepth(callStackDepth + i)
-		if cc == "" {
-			break
-		}
-		err1.Caller = append(err1.Caller, cc)
-	}
-
-	p(err1.debugString())
-	printStack()
+	xerr.WrapXErr(err).DebugPrint()
 	os.Exit(1)
-}
-
-func RecoverTest(t *testing.T, debugs ...bool) {
-	val := recover()
-	if val == nil {
-		return
-	}
-
-	var err error
-	handleRecover(&err, val)
-	if isErrNil(err) {
-		return
-	}
-
-	err1 := handle(err)
-	for i := 0; ; i++ {
-		var cc = utils.CallerWithDepth(callStackDepth + i)
-		if cc == "" {
-			break
-		}
-		err1.Caller = append(err1.Caller, cc)
-	}
-
-	var msg = err1.debugString()
-
-	if len(debugs) > 0 {
-		p(msg)
-		return
-	}
-
-	t.Fatal(msg)
 }

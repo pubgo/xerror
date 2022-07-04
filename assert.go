@@ -2,22 +2,24 @@ package funk
 
 import (
 	"fmt"
+
+	"github.com/pubgo/funk/xerr"
 )
 
 func Assert(b bool, format string, a ...interface{}) {
 	if b {
-		panic(handle(fmt.Errorf(format, a...)))
+		panic(xerr.WrapXErr(fmt.Errorf(format, a...)))
 	}
 }
 
 func AssertErr(b bool, err error) {
 	if b {
-		panic(handle(err))
+		panic(xerr.WrapXErr(err))
 	}
 }
 
 func AssertFn(b bool, fn func() error) {
 	if b {
-		panic(handle(fn()))
+		panic(xerr.WrapXErr(fn()))
 	}
 }

@@ -3,83 +3,82 @@ package funk
 import (
 	"fmt"
 	"os"
+
+	"github.com/pubgo/funk/xerr"
 )
 
 func Must(err error, args ...interface{}) {
-	if isErrNil(err) {
+	if err == nil {
 		return
 	}
 
-	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) }))
+	panic(xerr.WrapXErr(err, func(err *xerr.Xerror) { err.Detail = fmt.Sprint(args...) }))
 }
 
 func MustF(err error, msg string, args ...interface{}) {
-	if isErrNil(err) {
+	if err == nil {
 		return
 	}
 
-	panic(handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) }))
+	panic(xerr.WrapXErr(err, func(err *xerr.Xerror) { err.Detail = fmt.Sprintf(msg, args...) }))
 }
 
 func Must1[T any](ret T, err error) T {
-	if isErrNil(err) {
+	if err == nil {
 		return ret
 	}
 
-	panic(handle(err))
+	panic(xerr.WrapXErr(err))
 }
 
 func Exit(err error, args ...interface{}) {
-	if isErrNil(err) {
+	if err == nil {
 		return
 	}
 
-	p(handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) }).debugString())
-	printStack()
+	xerr.WrapXErr(err, func(err *xerr.Xerror) { err.Detail = fmt.Sprint(args...) }).DebugPrint()
 	os.Exit(1)
 }
 
 func ExitF(err error, msg string, args ...interface{}) {
-	if isErrNil(err) {
+	if err == nil {
 		return
 	}
 
-	p(handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) }).debugString())
-	printStack()
+	xerr.WrapXErr(err, func(err *xerr.Xerror) { err.Detail = fmt.Sprintf(msg, args...) }).DebugPrint()
 	os.Exit(1)
 }
 
 func Exit1[T any](ret T, err error) T {
-	if isErrNil(err) {
+	if err == nil {
 		return ret
 	}
 
-	p(handle(err).debugString())
-	printStack()
+	xerr.WrapXErr(err).DebugPrint()
 	os.Exit(1)
 	return ret
 }
 
 func Wrap(err error, args ...interface{}) error {
-	if isErrNil(err) {
+	if err == nil {
 		return nil
 	}
 
-	return handle(err, func(err *xerror) { err.Detail = fmt.Sprint(args...) })
+	return xerr.WrapXErr(err, func(err *xerr.Xerror) { err.Detail = fmt.Sprint(args...) })
 }
 
-func WrapFn(err error, fn func(err XErr) XErr) error {
-	if isErrNil(err) {
+func WrapFn(err error, fn func(err xerr.XErr) xerr.XErr) error {
+	if err == nil {
 		return nil
 	}
 
-	return fn(handle(err))
+	return fn(xerr.WrapXErr(err))
 }
 
 func WrapF(err error, msg string, args ...interface{}) error {
-	if isErrNil(err) {
+	if err == nil {
 		return nil
 	}
 
-	return handle(err, func(err *xerror) { err.Detail = fmt.Sprintf(msg, args...) })
+	return xerr.WrapXErr(err, func(err *xerr.Xerror) { err.Detail = fmt.Sprintf(msg, args...) })
 }

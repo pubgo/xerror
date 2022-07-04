@@ -30,7 +30,6 @@ func TestPanicErr(t *testing.T) {
 }
 
 func TestRespTest(t *testing.T) {
-	defer funk.RecoverTest(t)
 	testPanic1(t)
 }
 
@@ -42,7 +41,7 @@ func TestRespNext(t *testing.T) {
 func testPanic1(t *testing.T) {
 	defer funk.RecoverAndRaise()
 
-	//xerror.Must(xerror.New("ok"))
+	//Xerror.Must(Xerror.New("ok"))
 	funk.Must(init1Next())
 }
 

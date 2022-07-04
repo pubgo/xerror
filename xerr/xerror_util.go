@@ -1,19 +1,17 @@
-package funk
+package xerr
 
 import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime/debug"
 
-	"github.com/pubgo/funk/funkonf"
 	"github.com/pubgo/funk/internal/utils"
 )
 
 func isErrNil(err error) bool { return err == nil }
 func p(a ...interface{})      { _, _ = fmt.Fprintln(os.Stderr, a...) }
 
-func handleRecover(err *error, val interface{}) {
+func ParseErr(err *error, val interface{}) {
 	if val == nil {
 		return
 	}
@@ -27,14 +25,14 @@ func handleRecover(err *error, val interface{}) {
 		*err = fmt.Errorf("%#v", _val)
 	}
 
-	*err = handle(*err)
+	*err = WrapXErr(*err)
 }
 
-func handle(err error, fns ...func(err *xerror)) *xerror {
-	err1 := &xerror{Err: err}
+func WrapXErr(err error, fns ...func(err *Xerror)) *Xerror {
+	err1 := &Xerror{Err: err}
 	if _, ok := err.(XErr); !ok {
 		for i := 0; ; i++ {
-			var cc = utils.CallerWithDepth(callStackDepth + i)
+			var cc = utils.CallerWithDepth(CallStackDepth + i)
 			if cc == "" {
 				break
 			}
@@ -42,7 +40,7 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 		}
 	} else {
 		err1.Caller = []string{
-			utils.CallerWithDepth(callStackDepth + 2),
+			utils.CallerWithDepth(CallStackDepth + 2),
 		}
 	}
 
@@ -53,28 +51,20 @@ func handle(err error, fns ...func(err *xerror)) *xerror {
 	return err1
 }
 
-func trans(err error) *xerror {
+func trans(err error) *Xerror {
 	if err == nil {
 		return nil
 	}
 
 	switch err := err.(type) {
-	case *xerror:
+	case *Xerror:
 		return err
 	case interface{ Unwrap() error }:
 		if err.Unwrap() == nil {
-			return &xerror{Detail: fmt.Sprintf("%#v", err)}
+			return &Xerror{Detail: fmt.Sprintf("%#v", err)}
 		}
-		return &xerror{Err: err.Unwrap(), Msg: err.Unwrap().Error()}
+		return &Xerror{Err: err.Unwrap(), Msg: err.Unwrap().Error()}
 	default:
-		return &xerror{Msg: err.Error(), Detail: fmt.Sprintf("%#v", err)}
+		return &Xerror{Msg: err.Error(), Detail: fmt.Sprintf("%#v", err)}
 	}
-}
-
-func printStack() {
-	if !funkonf.Conf.PrintStack {
-		return
-	}
-
-	debug.PrintStack()
 }

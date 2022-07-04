@@ -1,14 +1,11 @@
 package funkonf
 
-var Conf = new(struct {
+type conf struct {
 	EnableCaller bool
-	PrintStack   bool
-	Delimiter    string
 	Debug        bool
-})
+}
 
-func init() {
-	Conf.EnableCaller = true
-	Conf.PrintStack = true
-	Conf.Delimiter = "||"
+var Conf = &conf{
+	EnableCaller: true,
+	Debug:        true,
 }

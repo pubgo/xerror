@@ -5,8 +5,6 @@ import (
 )
 
 func TestCheckNil(t *testing.T) {
-	defer RecoverTest(t)
-
 	var a *int
 	Assert(a == nil, "ok")
 }

@@ -2,6 +2,7 @@ package syncx
 
 import (
 	"context"
+	"github.com/pubgo/funk/xerr"
 	"time"
 
 	"github.com/pubgo/funk"
@@ -20,7 +21,7 @@ func GoChan[T any](fn func() typex.Value[T]) chan typex.Value[T] {
 
 	go func() {
 		defer close(ch)
-		defer funk.Recovery(func(err funk.XErr) {
+		defer funk.Recovery(func(err xerr.XErr) {
 			ch <- typex.Err[T](err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 		})
 		ch <- fn()
@@ -30,19 +31,19 @@ func GoChan[T any](fn func() typex.Value[T]) chan typex.Value[T] {
 }
 
 // GoSafe 安全并发处理
-func GoSafe(fn func(), catch ...func(err funk.XErr) funk.XErr) {
+func GoSafe(fn func(), catch ...func(err xerr.XErr) xerr.XErr) {
 	funk.Assert(fn == nil, "[fn] is nil")
 	go funk.TryAndLog(fn, catch...)
 }
 
 // GoCtx 可取消并发处理
-func GoCtx(fn func(ctx context.Context), cb ...func(err funk.XErr)) context.CancelFunc {
+func GoCtx(fn func(ctx context.Context), cb ...func(err xerr.XErr)) context.CancelFunc {
 	funk.Assert(fn == nil, "[fn] is nil")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
-		defer funk.Recovery(func(err funk.XErr) {
+		defer funk.Recovery(func(err xerr.XErr) {
 			if len(cb) != 0 {
 				cb[0](err)
 				return
@@ -78,7 +79,7 @@ func Timeout(dur time.Duration, fn func()) (gErr error) {
 	funk.Assert(dur <= 0, "[Timeout] [dur] should not be less than zero")
 	funk.Assert(fn == nil, "[Timeout] [fn] is nil")
 
-	defer funk.RecoverErr(&gErr, func(err funk.XErr) funk.XErr {
+	defer funk.RecoverErr(&gErr, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 	})
 

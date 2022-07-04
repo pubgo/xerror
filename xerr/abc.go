@@ -1,4 +1,4 @@
-package funk
+package xerr
 
 type XErr interface {
 	xErr()

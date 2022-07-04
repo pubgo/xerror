@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pubgo/funk/funkonf"
+	"github.com/pubgo/funk/xerr"
 )
 
 func testFunc() (err error) {
-	defer RecoverErr(&err, func(err XErr) XErr {
+	defer RecoverErr(&err, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("test func")
 	})
 	Must(Err{Msg: "test error"})
@@ -16,7 +16,6 @@ func testFunc() (err error) {
 }
 
 func TestTryLog(t *testing.T) {
-	funkonf.Conf.Debug = true
 	TryAndLog(func() {
 		Must(testFunc())
 	})
@@ -25,25 +24,21 @@ func TestTryLog(t *testing.T) {
 func TestTryCatch(t *testing.T) {
 	TryCatch(
 		func() { panic("ok") },
-		func(err XErr) {
+		func(err xerr.XErr) {
 			fmt.Println(err.Error(), err)
 		})
 }
 
 func TestTryThrow(t *testing.T) {
-	defer RecoverTest(t)
-
 	TryThrow(func() {
 		panic("abc")
 	})
 }
 
 func TestTryVal(t *testing.T) {
-	defer RecoverTest(t)
-
 	var v = TryRet(func() (*Err, error) {
 		return &Err{Msg: "ok"}, nil
-	}, func(err XErr) {
+	}, func(err xerr.XErr) {
 		fmt.Println(err)
 	})
 	fmt.Println(v)
