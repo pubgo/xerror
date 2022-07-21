@@ -1,7 +1,5 @@
 package typex
 
-import "github.com/pubgo/funk"
-
 type Value[T any] struct {
 	err error
 	val T
@@ -9,12 +7,7 @@ type Value[T any] struct {
 
 func (v Value[T]) IsErr() bool { return v.err != nil }
 func (v Value[T]) Get() T      { return v.val }
-func (v Value[T]) MustGet() T {
-	funk.Must(v.err)
-	return v.val
-}
-
-func (v Value[T]) Err() error { return v.err }
+func (v Value[T]) Err() error  { return v.err }
 
 func OK[T any](val T, err ...error) Value[T] {
 	var e error

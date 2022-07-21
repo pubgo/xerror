@@ -7,7 +7,6 @@ import (
 	"github.com/iancoleman/strcase"
 )
 
-// init
 // 环境变量处理, key转大写, 同时把`-./`转换为`_`
 // a-b=>a_b, a.b=>a_b, a/b=>a_b, HelloWorld=>hello_world
 func init() {
