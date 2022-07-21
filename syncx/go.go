@@ -2,13 +2,14 @@ package syncx
 
 import (
 	"context"
-	"github.com/pubgo/funk/xerr"
 	"time"
+
+	"k8s.io/klog/v2"
 
 	"github.com/pubgo/funk"
 	"github.com/pubgo/funk/internal/utils"
 	"github.com/pubgo/funk/typex"
-	"k8s.io/klog/v2"
+	"github.com/pubgo/funk/xerr"
 )
 
 func Async[T any](fn func() typex.Value[T]) chan typex.Value[T] { return GoChan[T](fn) }
