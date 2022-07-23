@@ -17,5 +17,9 @@ func Info(msg string, keysAndValues ...interface{}) {
 }
 
 func Error(err error, msg string, keysAndValues ...interface{}) {
+	if err == nil {
+		return
+	}
+
 	logT.WithCallDepth(1).Error(err, msg, keysAndValues...)
 }

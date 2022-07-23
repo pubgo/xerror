@@ -1,14 +1,11 @@
 package logx
 
 import (
-	"sync/atomic"
-
 	"github.com/go-logr/logr"
 	"github.com/iand/logfmtr"
 )
 
 var defaultLog = logr.Discard()
-var changeNum int32 = 1
 var logT = logr.New(&sink{})
 
 func init() {
@@ -23,7 +20,6 @@ func init() {
 
 func SetLog(log logr.Logger) {
 	defaultLog = log
-	atomic.AddInt32(&changeNum, 1)
 }
 
 func SetVerbosity(v int) {

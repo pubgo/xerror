@@ -1,9 +1,10 @@
 package syncx
 
 import (
+	"testing"
+
 	"github.com/pubgo/funk"
 	"github.com/pubgo/funk/typex"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 )

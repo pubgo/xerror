@@ -4,10 +4,9 @@ import (
 	"context"
 	"time"
 
-	"k8s.io/klog/v2"
-
 	"github.com/pubgo/funk"
 	"github.com/pubgo/funk/internal/utils"
+	"github.com/pubgo/funk/logx"
 	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/xerr"
 )
@@ -50,7 +49,7 @@ func GoCtx(fn func(ctx context.Context), cb ...func(err xerr.XErr)) context.Canc
 				return
 			}
 
-			klog.ErrorS(err, err.Error(), "fn", utils.CallerWithFunc(fn))
+			logx.Error(err, err.Error(), "fn", utils.CallerWithFunc(fn))
 		})
 
 		fn(ctx)
