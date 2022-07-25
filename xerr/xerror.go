@@ -7,31 +7,31 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/pubgo/funk/funkonf"
 	"github.com/pubgo/funk/internal/color"
 	"github.com/pubgo/funk/internal/utils"
+	"github.com/pubgo/funk/settings"
 )
 
 const CallStackDepth = 2
 
 func New(format string, a ...interface{}) XErr {
-	x := &Xerror{}
+	x := &XError{}
 	x.Msg = fmt.Sprintf(format, a...)
 	x.Caller = []string{utils.CallerWithDepth(CallStackDepth + 1)}
 	return x
 }
 
-type Xerror struct {
+type XError struct {
 	Err    error    `json:"cause,omitempty"`
 	Msg    string   `json:"msg,omitempty"`
 	Detail string   `json:"detail,omitempty"`
 	Caller []string `json:"caller,omitempty"`
 }
 
-func (t *Xerror) xErr()          {}
-func (t *Xerror) String() string { return t.Stack() }
-func (t *Xerror) DebugPrint() {
-	if !funkonf.Conf.Debug {
+func (t *XError) xErr()          {}
+func (t *XError) String() string { return t.Stack() }
+func (t *XError) DebugPrint() {
+	if !settings.Debug {
 		return
 	}
 
@@ -39,17 +39,17 @@ func (t *Xerror) DebugPrint() {
 	debug.PrintStack()
 }
 
-func (t *Xerror) Unwrap() error { return t.Err }
-func (t *Xerror) Cause() error  { return t.Err }
-func (t *Xerror) Wrap(args ...interface{}) XErr {
-	return WrapXErr(t, func(err *Xerror) { err.Detail = fmt.Sprint(args...) })
+func (t *XError) Unwrap() error { return t.Err }
+func (t *XError) Cause() error  { return t.Err }
+func (t *XError) Wrap(args ...interface{}) XErr {
+	return WrapXErr(t, func(err *XError) { err.Detail = fmt.Sprint(args...) })
 }
 
-func (t *Xerror) WrapF(msg string, args ...interface{}) XErr {
-	return WrapXErr(t, func(err *Xerror) { err.Detail = fmt.Sprintf(msg, args...) })
+func (t *XError) WrapF(msg string, args ...interface{}) XErr {
+	return WrapXErr(t, func(err *XError) { err.Detail = fmt.Sprintf(msg, args...) })
 }
 
-func (t *Xerror) _p(buf *strings.Builder, xrr *Xerror) {
+func (t *XError) _p(buf *strings.Builder, xrr *XError) {
 	if xrr == nil {
 		return
 	}
@@ -73,7 +73,7 @@ func (t *Xerror) _p(buf *strings.Builder, xrr *Xerror) {
 	t._p(buf, trans(xrr.Err))
 }
 
-func (t *Xerror) debugString() string {
+func (t *XError) debugString() string {
 	if t == nil || t.Err == nil {
 		return ""
 	}
@@ -87,13 +87,13 @@ func (t *Xerror) debugString() string {
 	return buf.String()
 }
 
-func (t *Xerror) Is(err error) bool {
+func (t *XError) Is(err error) bool {
 	if t == nil || t.Err == nil || err == nil {
 		return false
 	}
 
 	switch _err := err.(type) {
-	case *Xerror:
+	case *XError:
 		return _err == t || _err.Err == t.Err
 	case error:
 		return t.Err == _err
@@ -102,11 +102,11 @@ func (t *Xerror) Is(err error) bool {
 	}
 }
 
-func (t *Xerror) Format(s fmt.State, verb rune) {
+func (t *XError) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		if s.Flag('#') {
-			type errors Xerror
+			type errors XError
 			_, _ = fmt.Fprintf(s, "%#v", (*errors)(t))
 			return
 		}
@@ -124,7 +124,7 @@ func (t *Xerror) Format(s fmt.State, verb rune) {
 	}
 }
 
-func (t *Xerror) Stack() string {
+func (t *XError) Stack() string {
 	if t == nil || t.Err == nil {
 		return ""
 	}
@@ -137,14 +137,14 @@ func (t *Xerror) Stack() string {
 	return string(dt)
 }
 
-func (t *Xerror) As(target interface{}) bool {
+func (t *XError) As(target interface{}) bool {
 	if t == nil || target == nil {
 		return false
 	}
 
 	var v = reflect.ValueOf(target)
 	t1 := reflect.Indirect(v).Interface()
-	if err, ok := t1.(*Xerror); ok {
+	if err, ok := t1.(*XError); ok {
 		v.Elem().Set(reflect.ValueOf(err))
 		return true
 	}
@@ -152,7 +152,7 @@ func (t *Xerror) As(target interface{}) bool {
 }
 
 // Error
-func (t *Xerror) Error() string {
+func (t *XError) Error() string {
 	if t == nil || isErrNil(t.Err) {
 		return ""
 	}

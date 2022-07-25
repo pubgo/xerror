@@ -4,7 +4,8 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 )
 
 var NotFound = new(struct{})
@@ -14,9 +15,9 @@ type SMap struct {
 }
 
 func (t *SMap) Each(fn interface{}) (err error) {
-	defer funk.RecoverErr(&err)
+	defer recovery.Err(&err)
 
-	funk.Assert(fn == nil, "[fn] should not be nil")
+	assert.If(fn == nil, "[fn] should not be nil")
 
 	vfn := reflect.ValueOf(fn)
 	onlyKey := reflect.TypeOf(fn).NumIn() == 1
@@ -41,7 +42,7 @@ func (t *SMap) Map(fn func(val interface{}) interface{}) {
 }
 
 func (t *SMap) MapTo(data interface{}) (err error) {
-	defer funk.RecoverErr(&err)
+	defer recovery.Err(&err)
 
 	vd := reflect.ValueOf(data)
 	if vd.Kind() == reflect.Ptr {
@@ -51,7 +52,7 @@ func (t *SMap) MapTo(data interface{}) (err error) {
 
 	// var data = make(map[string]int); MapTo(data)
 	// var data map[string]int; MapTo(&data)
-	funk.Assert(!vd.IsValid() || vd.IsNil(), "[data] type error")
+	assert.If(!vd.IsValid() || vd.IsNil(), "[data] type error")
 
 	t.data.Range(func(key, value interface{}) bool {
 		vd.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(value))

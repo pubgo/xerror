@@ -9,6 +9,8 @@ var defaultLog = logr.Discard()
 var logT = logr.New(&sink{})
 
 func init() {
+	SetVerbosity(2)
+
 	opts := logfmtr.DefaultOptions()
 	opts.Humanize = true
 	opts.Colorize = true

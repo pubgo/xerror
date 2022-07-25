@@ -1,15 +1,17 @@
 package funk
 
 import (
+	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/internal/utils"
+	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/recovery"
 	"github.com/pubgo/funk/xerr"
-	"k8s.io/klog/v2"
 )
 
 func Try(fn func()) (gErr error) {
-	Assert(fn == nil, "[fn] is nil")
+	assert.If(fn == nil, "[fn] is nil")
 
-	defer RecoverErr(&gErr, func(err xerr.XErr) xerr.XErr {
+	defer recovery.Err(&gErr, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 	})
 
@@ -18,9 +20,9 @@ func Try(fn func()) (gErr error) {
 }
 
 func TryWith(err *error, fn func()) {
-	Assert(fn == nil, "[fn] is nil")
+	assert.If(fn == nil, "[fn] is nil")
 
-	defer RecoverErr(err, func(err xerr.XErr) xerr.XErr {
+	defer recovery.Err(err, func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 	})
 
@@ -28,26 +30,26 @@ func TryWith(err *error, fn func()) {
 }
 
 func TryAndLog(fn func(), catch ...func(err xerr.XErr) xerr.XErr) {
-	Assert(fn == nil, "[fn] is nil")
+	assert.If(fn == nil, "[fn] is nil")
 
-	defer Recovery(func(err xerr.XErr) {
+	defer recovery.Recovery(func(err xerr.XErr) {
 		if len(catch) > 0 {
 			err = catch[0](err)
 		}
 
 		err = err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 		err.DebugPrint()
-		klog.Error(err.Error(), " ", err)
+		logx.Error(err, err.Error())
 	})
 
 	fn()
 }
 
 func TryCatch(fn func(), catch func(err xerr.XErr)) {
-	Assert(fn == nil, "[fn] is nil")
-	Assert(catch == nil, "[catch] is nil")
+	assert.If(fn == nil, "[fn] is nil")
+	assert.If(catch == nil, "[catch] is nil")
 
-	defer Recovery(func(err xerr.XErr) {
+	defer recovery.Recovery(func(err xerr.XErr) {
 		catch(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 	})
 
@@ -55,9 +57,9 @@ func TryCatch(fn func(), catch func(err xerr.XErr)) {
 }
 
 func TryThrow(fn func()) {
-	Assert(fn == nil, "[fn] is nil")
+	assert.If(fn == nil, "[fn] is nil")
 
-	defer RecoverAndRaise(func(err xerr.XErr) xerr.XErr {
+	defer recovery.Raise(func(err xerr.XErr) xerr.XErr {
 		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
 	})
 
@@ -65,9 +67,9 @@ func TryThrow(fn func()) {
 }
 
 func TryRet[T any](fn func() (T, error), cache func(err xerr.XErr)) T {
-	Assert(fn == nil, "[fn] is nil")
+	assert.If(fn == nil, "[fn] is nil")
 
-	defer Recovery(func(err xerr.XErr) {
+	defer recovery.Recovery(func(err xerr.XErr) {
 		cache(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 	})
 

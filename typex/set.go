@@ -4,7 +4,8 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/recovery"
 	"go.uber.org/atomic"
 )
 
@@ -25,10 +26,10 @@ func (t *Set) Has(v interface{}) bool { _, ok := t.m.Load(v); return ok }
 func (t *Set) Len() uint32            { return t.count.Load() }
 
 func (t *Set) Map(data interface{}) (err error) {
-	defer funk.RecoverErr(&err)
+	defer recovery.Err(&err)
 
 	vd := reflect.ValueOf(data)
-	funk.Assert(vd.Kind() != reflect.Ptr, "[data] should be ptr type")
+	assert.If(vd.Kind() != reflect.Ptr, "[data] should be ptr type")
 	vd = vd.Elem()
 
 	dt := reflect.MakeSlice(vd.Type(), 0, int(t.count.Load()))
@@ -54,7 +55,7 @@ func (t *Set) List() (val []interface{}) {
 }
 
 func (t *Set) Each(fn interface{}) {
-	funk.Assert(fn == nil, "[fn] should not be nil")
+	assert.If(fn == nil, "[fn] should not be nil")
 
 	vfn := reflect.ValueOf(fn)
 	t.m.Range(func(key, value interface{}) bool { _ = vfn.Call(ListOf(reflect.ValueOf(key))); return true })

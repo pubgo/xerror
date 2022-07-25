@@ -1,4 +1,4 @@
-package funk
+package xerr
 
 import (
 	"errors"

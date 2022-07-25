@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pubgo/funk"
+	"github.com/pubgo/funk/assert"
+	"github.com/pubgo/funk/xerr"
 )
 
 var trim = strings.TrimSpace
@@ -24,8 +25,8 @@ func Get(names ...string) string {
 func MustGet(names ...string) string {
 	var val string
 	GetWith(&val, names...)
-	funk.AssertFn(val == "", func() error {
-		return &funk.Err{
+	assert.Fn(val == "", func() error {
+		return &xerr.Err{
 			Msg:    "env not found",
 			Detail: fmt.Sprintf("names=%v", names),
 		}

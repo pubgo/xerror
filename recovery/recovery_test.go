@@ -1,9 +1,10 @@
 package recovery
 
 import (
-	"github.com/pubgo/funk/xerr"
-	"log"
 	"testing"
+
+	"github.com/pubgo/funk/logx"
+	"github.com/pubgo/funk/xerr"
 )
 
 func TestName(t *testing.T) {
@@ -11,7 +12,7 @@ func TestName(t *testing.T) {
 		err.DebugPrint()
 	})
 
-	log.Println("test panic")
+	logx.Info("test panic")
 	hello()
 }
 

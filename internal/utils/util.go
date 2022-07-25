@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/pubgo/funk/funkonf"
+	"github.com/pubgo/funk/settings"
 )
 
 type frame uintptr
@@ -14,7 +14,7 @@ type frame uintptr
 func (f frame) pc() uintptr { return uintptr(f) - 1 }
 
 func CallerWithDepth(cd int) string {
-	if !funkonf.Conf.EnableCaller {
+	if !settings.EnableCaller {
 		return ""
 	}
 
@@ -38,7 +38,7 @@ func CallerWithFunc(fn interface{}) string {
 		return ""
 	}
 
-	if !funkonf.Conf.EnableCaller {
+	if !settings.EnableCaller {
 		return ""
 	}
 

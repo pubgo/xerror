@@ -1,4 +1,4 @@
-package funk
+package assert
 
 import (
 	"testing"
@@ -10,8 +10,6 @@ func TestCheckNil(t *testing.T) {
 }
 
 func try(fn func()) (err error) {
-	defer RecoverErr(&err)
-
 	fn()
 	return nil
 }
