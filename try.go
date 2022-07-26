@@ -38,8 +38,7 @@ func TryAndLog(fn func(), catch ...func(err xerr.XErr) xerr.XErr) {
 		}
 
 		err = err.WrapF("fn=%s", utils.CallerWithFunc(fn))
-		err.DebugPrint()
-		logx.Error(err, err.Error())
+		logx.Error(err, "log panic func")
 	})
 
 	fn()

@@ -2,16 +2,26 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	logkit "github.com/go-kit/log"
 	"github.com/go-logr/logr"
+
 	"github.com/pubgo/funk/logx"
 )
 
+var dd = logx.WithName("dd")
+
 func main() {
-	logx.SetVerbosity(2)
+	demo(dd)
 	demo(logx.V(1).WithName("abc"))
 	logx.Info("test")
-	demo(logx.Named("demo"))
+	demo(logx.WithName("demo"))
+
+	var ll = logkit.NewJSONLogger(os.Stdout)
+	logx.SetLog(ll)
+	demo(logx.WithName("logkit"))
+	demo(dd)
 }
 
 func demo(base logr.Logger) {

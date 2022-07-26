@@ -4,12 +4,20 @@ import (
 	"github.com/go-logr/logr"
 )
 
-func Named(name string) logr.Logger {
+func WithCallDepth(depth int) logr.Logger {
+	return logT.WithCallDepth(depth)
+}
+
+func WithName(name string) logr.Logger {
 	return logT.WithName(name)
 }
 
 func V(level int) logr.Logger {
 	return logT.V(level)
+}
+
+func WithValues(keysAndValues ...interface{}) logr.Logger {
+	return logT.WithValues(keysAndValues...)
 }
 
 func Info(msg string, keysAndValues ...interface{}) {

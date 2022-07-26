@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/fatih/color v1.13.0
+	github.com/go-kit/log v0.2.1
 	github.com/go-logr/logr v1.2.2
 	github.com/gopherjs/gopherjs v1.17.2
 	github.com/iancoleman/strcase v0.2.0
@@ -18,6 +19,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
