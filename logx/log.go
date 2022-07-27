@@ -20,6 +20,17 @@ func WithValues(keysAndValues ...interface{}) logr.Logger {
 	return logT.WithValues(keysAndValues...)
 }
 
+func IfEnabled(level int, fn func(log logr.Logger)) {
+	var log = V(level)
+	if log.Enabled() {
+		fn(log)
+	}
+}
+
+func Enabled() bool {
+	return logT.Enabled()
+}
+
 func Info(msg string, keysAndValues ...interface{}) {
 	logT.WithCallDepth(1).Info(msg, keysAndValues...)
 }

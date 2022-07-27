@@ -4,3 +4,4 @@ package docs
 // https://github.com/samber/lo
 // https://github.com/rbrahul/gofp
 // https://github.com/ginkgoch/godash
+// https://github.com/mailgun/holster
