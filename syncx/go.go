@@ -77,7 +77,7 @@ func GoDelay(fn func(), durations ...time.Duration) {
 }
 
 // Timeout 超时处理
-func Timeout(dur time.Duration, fn func()) (gErr error) {
+func Timeout(dur time.Duration, fn func() error) (gErr error) {
 	assert.Assert(dur <= 0, "[Timeout] [dur] should not be less than zero")
 	assert.Assert(fn == nil, "[Timeout] [fn] is nil")
 
