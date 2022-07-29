@@ -1,6 +1,7 @@
 package logx
 
 import (
+	"os"
 	"sync/atomic"
 
 	logkit "github.com/go-kit/log"
@@ -19,6 +20,7 @@ var gv int32 = 2
 
 func init() {
 	opts := logfmtr.DefaultOptions()
+	opts.Writer = os.Stderr
 	opts.Humanize = true
 	opts.Colorize = true
 	opts.CallerSkip = DefaultCallerSkip
