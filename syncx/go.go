@@ -89,7 +89,7 @@ func Timeout(dur time.Duration, fn func() error) (gErr error) {
 
 	go func() {
 		defer close(done)
-		gErr = funk.Try(fn)
+		funk.TryCatch(fn, func(err xerr.XErr) { gErr = err })
 	}()
 
 	select {

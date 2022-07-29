@@ -18,6 +18,21 @@ func Try(fn func() error) (gErr error) {
 	return fn()
 }
 
+func Try1[T any](fn func() (T, error), cache func(err xerr.XErr)) T {
+	assert.If(fn == nil, "[fn] is nil")
+
+	defer recovery.Recovery(func(err xerr.XErr) {
+		cache(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
+	})
+
+	val, err := fn()
+	if err == nil {
+		return val
+	}
+	cache(xerr.WrapXErr(err))
+	return val
+}
+
 func TryWith(err *error, fn func() error) {
 	assert.If(fn == nil, "[fn] is nil")
 
@@ -62,19 +77,4 @@ func TryThrow(fn func()) {
 	})
 
 	fn()
-}
-
-func TryRet[T any](fn func() (T, error), cache func(err xerr.XErr)) T {
-	assert.If(fn == nil, "[fn] is nil")
-
-	defer recovery.Recovery(func(err xerr.XErr) {
-		cache(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
-	})
-
-	val, err := fn()
-	if err == nil {
-		return val
-	}
-	cache(xerr.WrapXErr(err))
-	return val
 }
