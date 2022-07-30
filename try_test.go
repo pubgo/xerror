@@ -24,17 +24,12 @@ func TestTryLog(t *testing.T) {
 }
 
 func TestTryCatch(t *testing.T) {
-	TryCatch(
+	Try(
 		func() error { panic("ok"); return nil },
 		func(err xerr.XErr) {
 			fmt.Println(err.Error(), err)
-		})
-}
-
-func TestTryThrow(t *testing.T) {
-	TryThrow(func() {
-		panic("abc")
-	})
+		},
+	)
 }
 
 func TestTryVal(t *testing.T) {

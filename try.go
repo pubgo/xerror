@@ -8,14 +8,15 @@ import (
 	"github.com/pubgo/funk/xerr"
 )
 
-func Try(fn func() error) (gErr error) {
+func Try(fn func() error, catch func(err xerr.XErr)) {
 	assert.If(fn == nil, "[fn] is nil")
+	assert.If(catch == nil, "[catch] is nil")
 
-	defer recovery.Err(&gErr, func(err xerr.XErr) xerr.XErr {
-		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
+	defer recovery.Recovery(func(err xerr.XErr) {
+		catch(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
 	})
 
-	return fn()
+	catch(xerr.WrapXErr(fn()))
 }
 
 func Try1[T any](fn func() (T, error), cache func(err xerr.XErr)) T {
@@ -29,21 +30,12 @@ func Try1[T any](fn func() (T, error), cache func(err xerr.XErr)) T {
 	if err == nil {
 		return val
 	}
+
 	cache(xerr.WrapXErr(err))
 	return val
 }
 
-func TryWith(err *error, fn func() error) {
-	assert.If(fn == nil, "[fn] is nil")
-
-	defer recovery.Err(err, func(err xerr.XErr) xerr.XErr {
-		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
-	})
-
-	*err = fn()
-}
-
-func TryAndLog(fn func(), catch ...func(err xerr.XErr) xerr.XErr) {
+func TryAndLog(fn func() error, catch ...func(err xerr.XErr) xerr.XErr) {
 	assert.If(fn == nil, "[fn] is nil")
 
 	defer recovery.Recovery(func(err xerr.XErr) {
@@ -52,29 +44,10 @@ func TryAndLog(fn func(), catch ...func(err xerr.XErr) xerr.XErr) {
 		}
 
 		err = err.WrapF("fn=%s", utils.CallerWithFunc(fn))
-		logx.Error(err, "log panic func")
+		logx.Error(err, "panic func and log")
 	})
 
-	fn()
-}
-
-func TryCatch(fn func() error, catch func(err xerr.XErr)) {
-	assert.If(fn == nil, "[fn] is nil")
-	assert.If(catch == nil, "[catch] is nil")
-
-	defer recovery.Recovery(func(err xerr.XErr) {
-		catch(err.WrapF("fn=%s", utils.CallerWithFunc(fn)))
-	})
-
-	catch(xerr.WrapXErr(fn()))
-}
-
-func TryThrow(fn func()) {
-	assert.If(fn == nil, "[fn] is nil")
-
-	defer recovery.Raise(func(err xerr.XErr) xerr.XErr {
-		return err.WrapF("fn=%s", utils.CallerWithFunc(fn))
-	})
-
-	fn()
+	if err := fn(); err != nil {
+		panic(err)
+	}
 }

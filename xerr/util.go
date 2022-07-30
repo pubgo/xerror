@@ -29,6 +29,10 @@ func ParseErr(err *error, val interface{}) {
 }
 
 func WrapXErr(err error, fns ...func(err *XError)) *XError {
+	if err == nil {
+		return nil
+	}
+
 	err1 := &XError{Err: err}
 	if _, ok := err.(XErr); !ok {
 		for i := 0; ; i++ {

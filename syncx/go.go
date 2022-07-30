@@ -33,7 +33,7 @@ func GoChan[T any](fn func() typex.Value[T]) chan typex.Value[T] {
 }
 
 // GoSafe 安全并发处理
-func GoSafe(fn func(), catch ...func(err xerr.XErr) xerr.XErr) {
+func GoSafe(fn func() error, catch ...func(err xerr.XErr) xerr.XErr) {
 	assert.If(fn == nil, "[fn] is nil")
 	go funk.TryAndLog(fn, catch...)
 }
@@ -61,7 +61,7 @@ func GoCtx(fn func(ctx context.Context), cb ...func(err xerr.XErr)) context.Canc
 }
 
 // GoDelay 异步延迟处理
-func GoDelay(fn func(), durations ...time.Duration) {
+func GoDelay(fn func() error, durations ...time.Duration) {
 	assert.Assert(fn == nil, "[fn] is nil")
 
 	dur := time.Millisecond * 10
@@ -89,7 +89,7 @@ func Timeout(dur time.Duration, fn func() error) (gErr error) {
 
 	go func() {
 		defer close(done)
-		funk.TryCatch(fn, func(err xerr.XErr) { gErr = err })
+		funk.Try(fn, func(err xerr.XErr) { gErr = err })
 	}()
 
 	select {
