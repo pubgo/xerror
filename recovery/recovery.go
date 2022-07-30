@@ -2,6 +2,7 @@ package recovery
 
 import (
 	"os"
+	"runtime/debug"
 
 	"github.com/pubgo/funk/assert"
 	"github.com/pubgo/funk/xerr"
@@ -97,4 +98,20 @@ func Exit() {
 
 	xerr.WrapXErr(err).DebugPrint()
 	os.Exit(1)
+}
+
+func Log() {
+	val := recover()
+	if val == nil {
+		return
+	}
+
+	var err error
+	xerr.ParseErr(&err, val)
+	if err == nil {
+		return
+	}
+
+	xerr.WrapXErr(err).DebugPrint()
+	debug.PrintStack()
 }
