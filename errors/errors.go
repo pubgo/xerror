@@ -6,6 +6,8 @@ import (
 	"github.com/pubgo/funk/xerr"
 )
 
+type Err = xerr.Err
+
 func Is(err, target error) bool {
 	return errors.Is(err, target)
 }

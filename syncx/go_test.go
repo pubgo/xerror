@@ -12,7 +12,7 @@ import (
 func TestName(t *testing.T) {
 	var is = assert.New(t)
 
-	var cc = <-GoChan(func() typex.Value[string] {
+	var cc = <-GoChan(func() typex.Result[string] {
 		return typex.OK("ok")
 	})
 	funk.If(cc.IsErr(), func() {

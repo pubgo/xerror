@@ -13,13 +13,13 @@ import (
 	"github.com/pubgo/funk/xerr"
 )
 
-func Async[T any](fn func() typex.Value[T]) chan typex.Value[T] { return GoChan[T](fn) }
+func Async[T any](fn func() typex.Result[T]) chan typex.Result[T] { return GoChan[T](fn) }
 
 // GoChan 通过chan的方式同步执行异步任务
-func GoChan[T any](fn func() typex.Value[T]) chan typex.Value[T] {
+func GoChan[T any](fn func() typex.Result[T]) chan typex.Result[T] {
 	assert.If(fn == nil, "[fn] is nil")
 
-	var ch = make(chan typex.Value[T])
+	var ch = make(chan typex.Result[T])
 
 	go func() {
 		defer close(ch)
