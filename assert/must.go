@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pubgo/funk/typex"
 	"github.com/pubgo/funk/xerr"
 )
 
@@ -58,8 +57,4 @@ func Exit1[T any](ret T, err error) T {
 	xerr.WrapXErr(err).DebugPrint()
 	os.Exit(1)
 	return ret
-}
-
-func Unwrap[T any](res T, err error) typex.Result[T] {
-	return typex.OK(res, err)
 }
